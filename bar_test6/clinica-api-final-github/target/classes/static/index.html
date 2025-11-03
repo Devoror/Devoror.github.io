@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão Clínica - API Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { color: #333; }
+        h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 20px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Gestão Clínica - API Demo</h1>
+        <p>Esta é uma interface simples para demonstrar o funcionamento da API REST em Spring Boot.</p>
+
+        <!-- Variáveis de Estado (Simulação de Login) -->
+        <script>
+            let alunoId = null;
+            let professorId = null;
+            let pacienteId = null;
+            let sessaoId = null;
+        </script>
+
+        <!-- 1. Autenticação -->
+        <div class="section">
+            <h2>1. Autenticação (Login)</h2>
+            <p>Usuários de teste: <strong>aluno@clinica.com</strong> / 123 | <strong>prof@clinica.com</strong> / 123</p>
+            <button onclick="autenticar('aluno@clinica.com', '123', 'aluno')">Login Aluno</button>
+            <button onclick="autenticar('prof@clinica.com', '123', 'professor')">Login Professor</button>
+            <p>Status: <span id="authStatus">Deslogado</span></p>
+            <pre id="authResult"></pre>
+        </div>
+
+        <!-- 2. Cadastro de Paciente -->
+        <div class="section">
+            <h2>2. Cadastro de Paciente</h2>
+            <button onclick="cadastrarPaciente()">Cadastrar Paciente Teste</button>
+            <p>Paciente ID: <span id="pacienteIdDisplay">N/A</span></p>
+            <pre id="pacienteResult"></pre>
+        </div>
+
+        <!-- 3. Criação de Sessão -->
+        <div class="section">
+            <h2>3. Criação de Sessão</h2>
+            <button onclick="criarSessao()">Criar Sessão (Avaliação Inicial)</button>
+            <p>Sessão ID: <span id="sessaoIdDisplay">N/A</span></p>
+            <pre id="sessaoResult"></pre>
+        </div>
+
+        <!-- 4. Registro de Evolução -->
+        <div class="section">
+            <h2>4. Registro de Evolução</h2>
+            <button onclick="registrarEvolucao()">Registrar Evolução (Aluno)</button>
+            <pre id="evolucaoResult"></pre>
+        </div>
+
+        <!-- 5. Assinatura de Sessão -->
+        <div class="section">
+            <h2>5. Assinatura de Sessão</h2>
+            <button onclick="assinarSessao()">Assinar Sessão (Professor)</button>
+            <pre id="assinaturaResult"></pre>
+        </div>
+
+        <!-- 6. Listar Evoluções -->
+        <div class="section">
+            <h2>6. Listar Evoluções</h2>
+            <button onclick="listarEvolucoes()">Listar Evoluções da Sessão</button>
+            <pre id="listaEvolucoesResult"></pre>
+        </div>
+
+        <script>
+            const API_BASE = '/api';
+
+            async function callApi(endpoint, method = 'GET', body = null) {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                };
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                try {
+                    const response = await fetch(API_BASE + endpoint, options);
+                    let data = null;
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        // Ignora erro de JSON vazio (ex: 400 Bad Request com corpo vazio)
+                    }
+                    if (!response.ok) {
+                        if (response.status === 400) {
+                            throw new Error("CPF duplicado. Paciente já cadastrado.");
+                        }
+                        throw new Error(data ? (data.message || `Erro HTTP: ${response.status}`) : `Erro HTTP: ${response.status}`);
+                    }
+                    return data;
+                } catch (error) {
+                    console.error('Erro na API:', error);
+                    return { error: error.message };
+                }
+            }
+
+            async function autenticar(email, senha, tipo) {
+                const resultElement = document.getElementById('authResult');
+                const statusElement = document.getElementById('authStatus');
+                resultElement.textContent = 'Autenticando...';
+                statusElement.textContent = '...';
+
+                const data = await callApi('/usuarios/autenticar', 'POST', { email, senha });
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                    statusElement.textContent = 'Falha na Autenticação';
+                    statusElement.className = 'error';
+                } else {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                    statusElement.textContent = `Logado como ${data.nome} (${data.papel})`;
+                    statusElement.className = '';
+
+                    if (tipo === 'aluno') {
+                        alunoId = data.id;
+                        professorId = null; // Garante que apenas um esteja logado
+                    } else if (tipo === 'professor') {
+                        professorId = data.id;
+                        alunoId = null; // Garante que apenas um esteja logado
+                    }
+                }
+            }
+
+            function gerarCpfUnico() {
+                // Gera um CPF aleatório simples (apenas números)
+                let cpf = '';
+                for (let i = 0; i < 11; i++) {
+                    cpf += Math.floor(Math.random() * 10);
+                }
+                // Formata para o padrão XXX.XXX.XXX-XX
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
+
+            async function cadastrarPaciente() {
+                const resultElement = document.getElementById('pacienteResult');
+                resultElement.textContent = 'Cadastrando...';
+
+                // Gera dados únicos para garantir que o cadastro funcione
+                const cpfUnico = gerarCpfUnico();
+                const nomeUnico = "Paciente Teste " + cpfUnico.substring(0, 3);
+
+                const data = await callApi('/pacientes', 'POST', {
+                    nome: nomeUnico,
+                    cpf: cpfUnico,
+                    dataNascimento: "1990-01-01T00:00:00.000Z",
+                    telefone: "(11) 98765-4321",
+                    endereco: "Rua Exemplo, 123"
+                });
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    // Armazena o ID do paciente recém-criado
+                    pacienteId = data.id;
+                    document.getElementById('pacienteIdDisplay').textContent = pacienteId;
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                }
+            }
+
+            async function criarSessao() {
+                const resultElement = document.getElementById('sessaoResult');
+                resultElement.textContent = 'Criando sessão...';
+
+                if (!pacienteId) {
+                    resultElement.textContent = 'Erro: Cadastre um paciente primeiro.';
+                    return;
+                }
+                if (!alunoId) {
+                    resultElement.textContent = 'Erro: Faça login como aluno primeiro.';
+                    return;
+                }
+
+                const data = await callApi('/sessoes', 'POST', {
+                    pacienteId: pacienteId,
+                    alunoId: alunoId,
+                    tipo: "Avaliação Inicial"
+                });
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    sessaoId = data.id;
+                    document.getElementById('sessaoIdDisplay').textContent = sessaoId;
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                }
+            }
+
+            async function registrarEvolucao() {
+                const resultElement = document.getElementById('evolucaoResult');
+                resultElement.textContent = 'Registrando evolução...';
+
+                if (!sessaoId) {
+                    resultElement.textContent = 'Erro: Crie uma sessão primeiro.';
+                    return;
+                }
+                if (!alunoId) {
+                    resultElement.textContent = 'Erro: Faça login como aluno primeiro.';
+                    return;
+                }
+
+                const data = await callApi(`/sessoes/${sessaoId}/evolucoes`, 'POST', {
+                    texto: "Paciente demonstrou boa comunicação inicial.",
+                    autorId: alunoId
+                });
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                }
+            }
+
+            async function assinarSessao() {
+                const resultElement = document.getElementById('assinaturaResult');
+                resultElement.textContent = 'Assinando sessão...';
+
+                if (!sessaoId) {
+                    resultElement.textContent = 'Erro: Crie uma sessão primeiro.';
+                    return;
+                }
+                if (!professorId) {
+                    resultElement.textContent = 'Erro: Faça login como professor primeiro.';
+                    return;
+                }
+
+                const data = await callApi(`/sessoes/${sessaoId}/assinar?professorId=${professorId}`, 'POST');
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                }
+            }
+
+            async function listarEvolucoes() {
+                const resultElement = document.getElementById('listaEvolucoesResult');
+                resultElement.textContent = 'Listando evoluções...';
+
+                if (!sessaoId) {
+                    resultElement.textContent = 'Erro: Crie uma sessão primeiro.';
+                    return;
+                }
+
+                const data = await callApi(`/sessoes/${sessaoId}/evolucoes`, 'GET');
+
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
