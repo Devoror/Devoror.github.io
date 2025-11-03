@@ -1,0 +1,54 @@
+@startuml
+left to right direction
+
+actor Administrador as Admin
+actor Professor as Prof
+actor Aluno as Estagiario
+actor Paciente as Paciente
+
+rectangle "Sistema de Gestão Clínica" {
+    usecase "UC01 Cadastrar Paciente" as UC1
+    usecase "UC02 Atualizar/Excluir Paciente" as UC2
+    usecase "UC03 Gerir Usuários e Perfis" as UC3
+    usecase "UC04 Autenticar-se no Sistema" as UC4
+    usecase "UC05 Agendar/Remarcar/Cancelar Sessão" as UC5
+    usecase "UC06 Registrar Sessão (Anamnese/Evolução)" as UC6
+    usecase "UC07 Emitir Relatórios" as UC7
+    usecase "UC08 Gerir Termos/Consentimentos" as UC8
+    usecase "UC09 Consultar Histórico do Paciente" as UC9
+    usecase "UC10 Auditoria/Logs" as UC10
+}
+
+Admin -- UC3
+Admin -- UC10
+Admin -- UC7
+
+Prof -- UC4
+Prof -- UC5
+Prof -- UC6
+Prof -- UC7
+Prof -- UC9
+Prof -- UC10
+
+Estagiario -- UC4
+Estagiario -- UC1
+Estagiario -- UC2
+Estagiario -- UC5
+Estagiario -- UC6
+Estagiario -- UC8
+Estagiario -- UC9
+
+Paciente -- UC4
+Paciente -- UC8
+
+UC4 <.. UC1 : include
+UC4 <.. UC2 : include
+UC4 <.. UC3 : include
+UC4 <.. UC5 : include
+UC4 <.. UC6 : include
+UC4 <.. UC7 : include
+UC4 <.. UC8 : include
+UC4 <.. UC9 : include
+UC4 <.. UC10 : include
+
+@enduml

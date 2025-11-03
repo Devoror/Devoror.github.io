@@ -1,0 +1,50 @@
+@startuml
+title Registro de Sessão/Evolução
+
+actor Aluno as A
+participant "Interface do Sistema" as UI
+participant "SessaoService" as SS
+participant "Evolucao" as E
+database "Banco de Dados" as DB
+
+A -> UI: Abre sessão do paciente (GET /pacientes/{id}/sessoes)
+activate UI
+UI -> SS: getSessoesPaciente(pacienteId)
+activate SS
+SS -> DB: SELECT * FROM Sessao WHERE paciente_id = pacienteId
+activate DB
+DB --> SS: Lista de Sessões
+deactivate DB
+SS --> UI: Lista de Sessões
+deactivate SS
+deactivate UI
+
+A -> UI: Registra nova Evolução
+activate UI
+UI -> SS: registrarEvolucao(sessaoId, texto, alunoId)
+activate SS
+SS -> E: new(sessaoId, texto, alunoId)
+activate E
+E --> SS: Evolucao
+deactivate E
+SS -> DB: INSERT INTO Evolucao (...)
+activate DB
+DB --> SS: Sucesso
+deactivate DB
+SS --> UI: Evolução Registrada
+deactivate SS
+deactivate UI
+
+A -> UI: (Professor) Assina Sessão
+activate UI
+A -> SS: assinarSessao(sessaoId, professorId)
+activate SS
+SS -> DB: UPDATE Sessao SET assinada=true, professor_id=professorId WHERE id=sessaoId
+activate DB
+DB --> SS: Sucesso
+deactivate DB
+SS --> UI: Sessão Assinada
+deactivate SS
+deactivate UI
+
+@enduml

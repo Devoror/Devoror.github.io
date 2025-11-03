@@ -1,0 +1,22 @@
+@startuml
+title Fluxo de Atendimento Clínico
+
+start
+:Recepção cadastra Paciente;
+:Coletar Consentimento;
+if (Consentimento disponível?) then (Não)
+  :Anexar termo digital / Coletar assinatura no ato;
+endif
+:Aluno propõe Agendamento;
+:Professor valida/ajusta horário;
+:Agendamento Confirmado;
+repeat
+  :Realiza Sessão (Anamnese/Avaliação);
+  :Aluno registra Evolução;
+  :Professor assina Sessão (RN01);
+repeat while (Sessões recorrentes?) is (Sim)
+-> Não;
+:Emitir Relatório Final;
+:Definir Alta/Encaminhamento;
+stop
+@enduml
