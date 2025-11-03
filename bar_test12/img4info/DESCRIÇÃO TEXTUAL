@@ -1,0 +1,13 @@
+SISTEMA DE GESTÃO DE CLÍNICA-ESCOLA DE FISIOTERAPIA
+
+O sistema desenvolvido tem como objetivo gerenciar o atendimento clínico em uma 
+clínica-escola de fisioterapia, controlando pacientes, sessões terapêuticas e 
+evoluções clínicas. A aplicação permite que administradores gerenciem usuários, 
+professores supervisione e validem atendimentos, e alunos estagiários registrem 
+sessões e evoluções dos pacientes. O sistema implementa controle de autenticação 
+por perfis (ADMIN, PROFESSOR, ALUNO), garantindo que cada tipo de usuário acesse 
+apenas as funcionalidades pertinentes ao seu papel. As principais funcionalidades 
+incluem cadastro de pacientes com dados pessoais, agendamento de sessões, registro 
+de evoluções clínicas por sessão, e validação de atendimentos por professores 
+supervisores. A arquitetura REST API desenvolvida em Java Spring Boot permite 
+escalabilidade e integração futura com interfaces mobile ou desktop.
