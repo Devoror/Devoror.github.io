@@ -1,0 +1,129 @@
+package br.com.clinica.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+/**
+ * Classe base Usuario - Demonstra ABSTRAÇÃO e ENCAPSULAMENTO
+ * 
+ * Esta classe representa a entidade genérica de usuário do sistema,
+ * servindo como superclasse para Aluno e Professor (HERANÇA).
+ * Encapsula os dados comuns a todos os tipos de usuários.
+ */
+@Entity
+@Table(name = "usuario")
+@Inheritance(strategy = InheritanceType.JOINED) // Herança com tabelas separadas
+public class Usuario {
+    
+    // ENCAPSULAMENTO: atributos privados protegem os dados
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+    
+    @Column(nullable = false)
+    private String nome;
+    
+    @Column(unique = true, nullable = false)
+    private String email;
+    
+    @Column(nullable = false)
+    private String senhaHash;
+    
+    @Column(nullable = false)
+    private String perfil; // ADMIN, PROFESSOR, ALUNO
+    
+    @Column(nullable = false)
+    private Boolean ativo = true;
+    
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    // Construtor padrão necessário para JPA
+    public Usuario() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    // Construtor com parâmetros essenciais
+    public Usuario(String nome, String email, String senhaHash, String perfil) {
+        this();
+        this.nome = nome;
+        this.email = email;
+        this.senhaHash = senhaHash;
+        this.perfil = perfil;
+    }
+    
+    // ENCAPSULAMENTO: getters e setters controlam o acesso aos atributos
+    public String getId() {
+        return id;
+    }
+    
+    public String getNome() {
+        return nome;
+    }
+    
+    public void setNome(String nome) {
+        this.nome = nome;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    public void setEmail(String email) {
+        this.email = email;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public String getSenhaHash() {
+        return senhaHash;
+    }
+    
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public String getPerfil() {
+        return perfil;
+    }
+    
+    public void setPerfil(String perfil) {
+        this.perfil = perfil;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public Boolean getAtivo() {
+        return ativo;
+    }
+    
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    /**
+     * POLIMORFISMO: Este método pode ser sobrescrito pelas subclasses
+     * para fornecer informações específicas de cada tipo de usuário
+     */
+    public String obterInformacoesCompletas() {
+        return String.format("Usuário: %s (%s) - Perfil: %s", 
+                           nome, email, perfil);
+    }
+    
+    /**
+     * Método de validação - Regra de negócio encapsulada
+     */
+    public boolean podeAcessarSistema() {
+        return this.ativo != null && this.ativo;
+    }
+}
