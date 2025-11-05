@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALVA SAGA: The Loop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0015 0%, #1a0033 50%, #2d1b4e 100%);
+            min-height: 100vh;
+            padding: 1rem 2rem;
+            color: #e0e7ff;
+        }
+
+        .container {
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            border: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .achievement-popup.normal {
+            background-color: #9333ea;
+            border-color: #d8b4fe;
+            color: #fff;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .achievement-popup.ultimate {
+            background: linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6);
+            border-color: #fbbf24;
+            color: #fff;
+            animation: bounce 0.6s ease-in-out infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .achievement-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .achievement-content div:first-child {
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .achievement-content div:last-child {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+        }
+
+        .main-box {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            border: 4px solid #8b5cf6;
+            box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.3);
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #a78bfa;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .title {
+                font-size: 2.25rem;
+            }
+        }
+
+        .title-icon {
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-button:disabled {
+            background-color: #374151;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .nav-button:not(:disabled) {
+            background-color: #8b5cf6;
+            color: #fff;
+        }
+
+        .nav-button:not(:disabled):hover {
+            background-color: #a78bfa;
+        }
+
+        .location-box {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #1f2937;
+            border-radius: 0.25rem;
+            border: 1px solid #8b5cf6;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .location-icon {
+            color: #a78bfa;
+            flex-shrink: 0;
+        }
+
+        .location-text {
+            color: #a78bfa;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .location-text strong {
+            font-weight: bold;
+        }
+
+        .achievements-box {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(139, 92, 246, 0.2);
+            border-radius: 0.25rem;
+            border: 1px solid #8b5cf6;
+        }
+
+        .achievements-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievements-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .achievements-title-text {
+            color: #c4b5fd;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .achievements-count {
+            color: #ddd6fe;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #1f2937;
+            border-radius: 9999px;
+            height: 0.75rem;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+            height: 0.75rem;
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+
+        .achievements-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .achievement-badge {
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background-color: #7c3aed;
+            color: #ddd6fe;
+        }
+
+        .achievement-badge.ultimate {
+            background: linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6);
+            color: #fff;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .ending-warning {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(236, 72, 153, 0.3);
+            border-radius: 0.25rem;
+            border: 2px solid #ec4899;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .ending-warning-text {
+            color: #fbcfe8;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .scenario-box {
+            background-color: #111827;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid #8b5cf6;
+            margin-bottom: 1.5rem;
+            min-height: 200px;
+        }
+
+        .scenario-text {
+            color: #c4b5fd;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            .scenario-text {
+                font-size: 0.875rem;
+            }
+        }
+
+        .ending-text {
+            color: #fcd34d;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #7c3aed;
+        }
+
+        @media (max-width: 640px) {
+            .ending-text {
+                font-size: 0.75rem;
+            }
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .choice-button {
+            width: 100%;
+            background-color: #7c3aed;
+            color: #fff;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid #a78bfa;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+
+        @media (min-width: 640px) {
+            .choice-button {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        .choice-button:hover {
+            background-color: #8b5cf6;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
+        }
+
+        .choice-button:active {
+            transform: scale(0.98);
+        }
+
+        .history-box {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid #374151;
+        }
+
+        .history-title {
+            color: #a78bfa;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        @media (min-width: 640px) {
+            .history-title {
+                font-size: 1rem;
+            }
+        }
+
+        .history-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .history-button {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-button.current {
+            background-color: #7c3aed;
+            color: #fff;
+            font-weight: bold;
+            transform: scale(1.1);
+        }
+
+        .history-button.visited {
+            background-color: #374151;
+            color: #a78bfa;
+        }
+
+        .history-button.visited:hover {
+            background-color: #4b5563;
+        }
+
+        .history-button.unvisited {
+            background-color: #1f2937;
+            color: #6b7280;
+        }
+
+        .history-hint {
+            color: #c4b5fd;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            margin-top: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .quest-log-box {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            border: 2px solid #374151;
+        }
+
+        .quest-log-title {
+            color: #a78bfa;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        @media (min-width: 640px) {
+            .quest-log-title {
+                font-size: 1rem;
+            }
+        }
+
+        .quest-log-entries {
+            color: #c4b5fd;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .quest-log-entry {
+            opacity: 0.7;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .quest-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 640px) {
+            .main-box {
+                padding: 1rem;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            .nav-button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="achievementPopup" class="achievement-popup" style="display: none;">
+            <div class="achievement-icon">✨</div>
+            <div class="achievement-content">
+                <div id="achievementTitle">🎉 ACHIEVEMENT UNLOCKED!</div>
+                <div id="achievementName"></div>
+            </div>
+        </div>
+
+        <div class="main-box">
+            <div class="header">
+                <h1 class="title">
+                    <span class="title-icon">⚡</span>
+                    ALVA SAGA: THE LOOP
+                </h1>
+                <div class="button-group">
+                    <button class="nav-button" id="backBtn" onclick="goBack()" title="Go back">← Back</button>
+                    <button class="nav-button" id="forwardBtn" onclick="goForward()" title="Go forward">Forward →</button>
+                </div>
+            </div>
+
+            <div class="location-box">
+                <span class="location-icon">📍</span>
+                <p class="location-text"><strong>LOCATION:</strong> <span id="location"></span></p>
+            </div>
+
+            <div id="achievementsBox" class="achievements-box" style="display: none;">
+                <div class="achievements-header">
+                    <div class="achievements-title">
+                        <span>✨</span>
+                        <p class="achievements-title-text">ACHIEVEMENTS (<span id="achievementCount">0</span>/<span id="totalAchievements">15</span>)</p>
+                    </div>
+                    <p class="achievements-count"><span id="achievementsLeft">15</span> left to unlock</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+                <div class="achievements-list" id="achievementsList"></div>
+            </div>
+
+            <div id="endingWarning" class="ending-warning" style="display: none;">
+                <p class="ending-warning-text">⚠️ ENDING REACHED ⚠️</p>
+            </div>
+
+            <div class="scenario-box">
+                <p class="scenario-text" id="scenarioText"></p>
+                <p class="ending-text" id="endingText" style="display: none;"></p>
+            </div>
+
+            <div class="choices-container" id="choicesContainer"></div>
+        </div>
+
+        <div id="historyBox" class="history-box" style="display: none;">
+            <h3 class="history-title">
+                <span>🔄</span>
+                LOOP TIMELINE (<span id="historyIndex">1</span>/<span id="historyLength">1</span>)
+            </h3>
+            <div class="history-buttons" id="historyButtons"></div>
+            <p class="history-hint">Click any number to jump to that moment in the loop</p>
+        </div>
+
+        <div id="questLogBox" class="quest-log-box" style="display: none;">
+            <h3 class="quest-log-title">
+                <span>📜</span>
+                MEMORY LOG
+            </h3>
+            <div class="quest-log-entries" id="questLogEntries"></div>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = {
+            start: {
+                text: "A glowing letter floats in the endless mist. Five hooded figures awaken.\n\n\"Dear Lumi, I'm trapped in a time loop. I will return soon... But you won't remember me.\"\n\nThe letter fades. You are Team Alva: Nuvine, Aesu, Lumi, Vonor, and Brinia. You have no memories, only this letter echoing in your mind.\n\nWhat do you do?",
+                location: "❓ The Void - Prime Pixel",
+                choices: [
+                    { text: "Try to remember who you are", next: 'remember' },
+                    { text: "Search for answers in Zios", next: 'enter_zios' },
+                    { text: "Accept the loop and collapse", next: 'give_up' }
+                ]
+            },
+            remember: {
+                text: "You close your eyes and focus. Fragments of memory flash: a campfire, laughter, bonds forged across dimensions.\n\nNuvine's cold robotic persona, Alter, speaks: 'Hope is a virus.' But another voice whispers: 'Hope is no virus.'\n\nThe memories are scattered, incomplete. You need to find the source.",
+                location: "🧠 Memory Space",
+                choices: [
+                    { text: "Follow the memories to Zios", next: 'enter_zios' },
+                    { text: "Trust the letter and seek Aesu", next: 'seek_aesu' },
+                    { text: "Let Alter take control", next: 'alter_control' }
+                ]
+            },
+            give_up: {
+                text: "You collapse, overwhelmed by the weight of infinite loops. The mist closes in.\n\nAs consciousness fades, you hear Zane's laughter echoing: 'Persistence doesn't break the loop. It sustains it.'\n\nThe loop resets. You wake again at the beginning, having learned nothing.",
+                location: "❓ The Void - Prime Pixel",
+                ending: true,
+                achievement: "ETERNAL SURRENDER",
+                endingText: "💀 ENDING: You gave up before even trying. The loop continues forever, and you will never remember this choice. Perhaps in the next iteration, you'll have the courage to resist.",
+                choices: [
+                    { text: "Start Over", next: 'start' }
+                ]
+            },
+            enter_zios: {
+                text: "You focus your will and activate Nuvine's ability: SCAN.\n\nZios materializes around you—a vast, infinite virtual world that reacts to your thoughts. It's alive, conscious, constantly shifting.\n\nBefore you can explore, a portal tears open. Hostile code entities emerge, remnants of Zane's defenses.",
+                location: "🌐 Zios - Entrance",
+                choices: [
+                    { text: "Fight the code entities", next: 'fight_entities' },
+                    { text: "Hack into Zios directly", next: 'hack_zios' },
+                    { text: "Retreat and regroup", next: 'retreat_camp' }
+                ]
+            },
+            seek_aesu: {
+                text: "You call out for Aesu. The mist swirls, and a figure emerges—masked, with spiked black hair and a glowing sword.\n\n'You remembered me,' Aesu says, voice filled with hope and sorrow. 'But we've done this before. So many times.'\n\nHe extends his hand. 'This time will be different.'",
+                location: "🌫️ The Mist - Reunion",
+                choices: [
+                    { text: "Take his hand and form the team", next: 'form_team' },
+                    { text: "Question him about the loop", next: 'question_aesu' },
+                    { text: "Distrust him and walk away", next: 'distrust_aesu' }
+                ]
+            },
+            alter_control: {
+                text: "You let Alter, Nuvine's cold robotic persona, take full control. Logic overrides emotion.\n\nAlter analyzes the situation with ruthless efficiency: 'The letter is a hack. A weakness in the loop's code. We must exploit it.'\n\nBut in pure logic, there is no room for hope. No room for the bond that makes Team Alva strong.",
+                location: "🤖 Alter Space",
+                choices: [
+                    { text: "Follow Alter's logic to Zios", next: 'alter_zios' },
+                    { text: "Resist and reclaim Nuvine", next: 'resist_alter' }
+                ]
+            },
+            fight_entities: {
+                text: "Team Alva engages the hostile code entities. Aesu's blade cuts through digital matter. Lumi's scythe carves arcs of light.\n\nVonor grins: 'Just like old times!'\nBrinia's biometal armor ripples as she summons AxoNexus.\n\nBut something's wrong. The entities reform. They're learning from you.",
+                location: "🌐 Zios - Combat Zone",
+                choices: [
+                    { text: "Adapt your strategy", next: 'adapt_strategy' },
+                    { text: "Overpower them with raw force", next: 'raw_force' },
+                    { text: "Retreat into deeper Zios", next: 'deeper_zios' }
+                ]
+            },
+            hack_zios: {
+                text: "Lumi steps forward. 'I can hack it. I can see the code beneath reality.'\n\nHer eyes glow white as she interfaces with Zios directly. The virtual world bends to her will—but then she gasps.\n\n'Someone else is here. Someone who knows every line of code. Zane.'",
+                location: "🌐 Zios - Core Access",
+                choices: [
+                    { text: "Confront Zane directly", next: 'confront_zane_early' },
+                    { text: "Hide and learn more", next: 'spy_on_zane' },
+                    { text: "Fight fire with fire—become the code", next: 'become_code' }
+                ]
+            },
+            retreat_camp: {
+                text: "You pull back from Zios and regroup. Under the endless starry sky, you make camp.\n\nThe fire crackles. For a moment, it feels like you've done this before. Many times. The warmth, the camaraderie—it's familiar.\n\nVonor adjusts his pyromaniac glasses: 'Remember when Aesu exploded that living dimension?'\n\nWait... do you remember that?",
+                location: "🏕️ The Campfire - Cosmos",
+                choices: [
+                    { text: "Share memories and strengthen bonds", next: 'strengthen_bonds' },
+                    { text: "Plan your next move", next: 'plan_strategy' },
+                    { text: "Rest and recover", next: 'rest_camp' }
+                ]
+            },
+            form_team: {
+                text: "You take Aesu's hand. One by one, the others emerge from the mist: Lumi with her scythe, Vonor with his grin, Brinia with her biometal armor, Nuvine and Alter in harmony.\n\nTeam Alva is complete.\n\n'Together,' Lumi says softly. 'We break the loop together.'",
+                location: "🏕️ The Campfire - Reunion",
+                choices: [
+                    { text: "Enter Zios as a team", next: 'team_enters_zios' },
+                    { text: "Train and prepare first", next: 'team_training' }
+                ]
+            },
+            question_aesu: {
+                text: "You ask Aesu about the loop. He sighs, his masked face reflecting the dim light.\n\n'We've lived countless lives. Each time, we get closer to breaking free. Each time, Zane resets us. But the letter—it's our anchor. Our one constant across all timelines.'\n\nHe looks at you with fierce determination. 'This time, we remember just enough.'",
+                location: "🌫️ The Mist - Truth",
+                choices: [
+                    { text: "Believe him and form the team", next: 'form_team' },
+                    { text: "Ask about Zane", next: 'learn_about_zane' }
+                ]
+            },
+            distrust_aesu: {
+                text: "You turn away from Aesu. Trust is a luxury you can't afford in a world of loops and lies.\n\nAesu calls after you: 'I understand. I've betrayed you in other timelines. But this time is different. Please.'\n\nYou walk into the mist alone. The loneliness is crushing.",
+                location: "🌫️ The Mist - Alone",
+                ending: true,
+                achievement: "TRUST ISSUES",
+                endingText: "💀 ENDING: Without your team, you wander the void forever. Trust is the foundation of Team Alva's strength. Without it, you're just another lost soul in the infinite loop.",
+                choices: [
+                    { text: "Start Over", next: 'start' }
+                ]
+            },
+            alter_zios: {
+                text: "Under Alter's control, you approach Zios with cold precision. Every move calculated. Every emotion suppressed.\n\nYou bypass Zane's defenses easily. Too easily. And then you realize: Zane wanted you to get this far. He's been studying you.\n\nAlter's voice: 'Emotion is inefficient. But... we need the others. Logic demands it.'",
+                location: "🌐 Zios - Calculated Path",
+                choices: [
+                    { text: "Acknowledge the need for emotion", next: 'balance_logic_emotion' },
+                    { text: "Continue with pure logic", next: 'pure_logic_failure' }
+                ]
+            },
+            resist_alter: {
+                text: "You fight back against Alter's control. Nuvine's true self—young, brilliant, vulnerable—resurfaces.\n\n'I'm... I'm scared,' Nuvine admits. 'But I can't do this alone. I need Alter's logic AND my heart.'\n\nThe two personas merge, creating balance. This is Nuvine's true power.",
+                location: "🧠 Nuvine's Core",
+                choices: [
+                    { text: "Rejoin the team with newfound strength", next: 'nuvine_returns' },
+                    { text: "Use this power to scan Zios", next: 'nuvine_scan' }
+                ]
+            },
+            adapt_strategy: {
+                text: "Team Alva fights with coordination. Each member anticipates the others' moves. It's like a dance you've perfected over countless lifetimes.\n\nThe entities fall. But as the last one dissolves, it whispers: 'He knows you're here. He's always known.'\n\nZane is waiting.",
+                location: "🌐 Zios - Victory",
+                choices: [
+                    { text: "Push forward to confront Zane", next: 'confront_zane' },
+                    { text: "Explore Zios for weaknesses", next: 'explore_zios' }
+                ]
+            },
+            raw_force: {
+                text: "You unleash everything. Aesu's blade blazes. Lumi's scythe tears reality. Vonor's mechanical arm fires continuously. Brinia becomes a tornado of biometal blades.\n\nThe entities are obliterated—but so is part of Zios itself. The virtual world cracks and glitches.\n\nYou've damaged the very fabric of the system.",
+                location: "🌐 Zios - Destruction",
+                choices: [
+                    { text: "Try to repair the damage", next: 'repair_zios' },
+                    { text: "Use the chaos to reach Zane", next: 'chaos_path' }
+                ]
+            },
+            deeper_zios: {
+                text: "You flee deeper into Zios. The virtual world shifts around you—forests of code, oceans of data, mountains of compressed memories.\n\nYou find something unexpected: echoes of your previous loops, saved as files in Zios's deepest layers. Your past selves left messages.",
+                location: "🌐 Zios - Deep Archives",
+                choices: [
+                    { text: "Read the messages", next: 'read_messages' },
+                    { text: "Ignore them and keep moving", next: 'ignore_messages' }
+                ]
+            },
+            confront_zane_early: {
+                text: "You rush toward Zane's presence. He materializes before you—a figure stitched from fractured timelines.\n\n'Eager today, aren't we?' he smirks. 'But you're not ready. You never are at this stage.'\n\nHe waves his hand. The loop resets instantly.",
+                location: "🌐 Zios - Zane's Domain",
+                ending: true,
+                achievement: "TOO SOON",
+                endingText: "💀 ENDING: You rushed in without preparation. Zane effortlessly reset the loop. Sometimes courage isn't enough—you need wisdom too.",
+                choices: [
+                    { text: "Start Over", next: 'start' }
+                ]
+            },
+            spy_on_zane: {
+                text: "You hide in the code streams, observing Zane from a distance. He's maintaining the loop, but you notice something: he looks... tired.\n\n'Another cycle,' he mutters to himself. 'How many more until they understand? The loop protects them. Without it, they'll face true erasure.'\n\nIs Zane... trying to protect you?",
+                location: "🌐 Zios - Hidden",
+                choices: [
+                    { text: "Reveal yourself and talk to him", next: 'talk_to_zane' },
+                    { text: "Attack while he's vulnerable", next: 'ambush_zane' },
+                    { text: "Continue observing", next: 'observe_more' }
+                ]
+            },
+            become_code: {
+                text: "Lumi dives fully into Zios. She becomes one with the system, transcending physical form.\n\nFor a moment, she sees EVERYTHING. Every loop. Every choice. Every ending. Every beginning.\n\nShe sees that Zios is not just a program—it's alive. Conscious. And it's been watching Team Alva with something like... love?",
+                location: "🌐 Zios - Digital Transcendence",
+                choices: [
+                    { text: "Merge with Zios completely", next: 'merge_zios' },
+                    { text: "Return to physical form with knowledge", next: 'return_with_knowledge' }
+                ]
+            },
+            strengthen_bonds: {
+                text: "You share stories. Vonor tells jokes. Brinia opens up about loyalty. Aesu and Lumi exchange quiet glances that speak volumes.\n\nNuvine, usually quiet, speaks: 'I don't remember everything, but I remember this feeling. Being with all of you. This is what we're fighting for.'\n\nThe fire burns brighter. Your bond strengthens.",
+                location: "🏕️ The Campfire - Unity",
+                choices: [
+                    { text: "Enter Zios together, stronger than before", next: 'team_enters_zios' },
+                    { text: "Stay and enjoy this moment longer", next: 'cherish_moment' }
+                ]
+            },
+            plan_strategy: {
+                text: "You lay out what you know. Vonor traces diagrams in the dirt with his mechanical arm. Lumi analyzes the code structure. Aesu plans the assault.\n\n'Zane controls Zios, but the letter is our exploit,' Nuvine says. 'It's a piece of data that shouldn't exist across loops. We can use it as a weapon.'\n\nYou have a plan.",
+                location: "🏕️ The Campfire - Strategy",
+                choices: [
+                    { text: "Execute the plan immediately", next: 'execute_plan' },
+                    { text: "Refine the plan further", next: 'refine_plan' }
+                ]
+            },
+            rest_camp: {
+                text: "For once, you just... rest. No planning. No fighting. Just existing together under the stars.\n\nBrinia lies back, staring at the sky. 'Do you think we've earned this? Peace?'\n\nAesu responds quietly, 'We've earned the right to fight for it.'\n\nThe night passes. Tomorrow, you'll face the loop again.",
+                location: "🏕️ The Campfire - Peace",
+                choices: [
+                    { text: "Wake up and enter Zios refreshed", next: 'refreshed_team' }
+                ]
+            },
+            team_enters_zios: {
+                text: "Team Alva enters Zios as one. The virtual world recognizes you—all five consciousnesses acting in perfect harmony.\n\nZios responds. It creates a path directly to its core, bypassing Zane's defenses. The system... wants you to succeed?\n\n'This feels wrong,' Vonor says. 'Too easy.'",
+                location: "🌐 Zios - United Path",
+                choices: [
+                    { text: "Trust Zios and follow the path", next: 'trust_zios_path' },
+                    { text: "Suspect a trap and take another route", next: 'alternate_route' }
+                ]
+            },
+            team_training: {
+                text: "You spend time training, synchronizing your abilities. Aesu and Lumi practice combined attacks. Vonor upgrades everyone's equipment. Brinia teaches survival tactics. Nuvine/Alter balance logic and emotion.\n\nDays pass—or do they? Time feels strange outside Zios. But you're stronger. Ready.",
+                location: "🏕️ Training Grounds",
+                choices: [
+                    { text: "Enter Zios at full strength", next: 'team_enters_zios_strong' }
+                ]
+            },
+            learn_about_zane: {
+                text: "Aesu's voice darkens. 'Zane is the creator of Zios. He made it to preserve consciousness, to keep memories alive forever. But something went wrong. He became obsessed with control, with perfection.\n\nHe trapped us in the loop because he believes it's the only way to keep us safe from... something worse. Something he calls the Eclipse.'",
+                location: "🌫️ The Mist - Revelation",
+                choices: [
+                    { text: "Ask about the Eclipse", next: 'learn_eclipse' },
+                    { text: "Focus on breaking the loop first", next: 'form_team' }
+                ]
+            },
+            balance_logic_emotion: {
+                text: "Alter acknowledges what logic cannot deny: emotion is not weakness. It is the variable that makes Team Alva unpredictable, powerful.\n\nNuvine resurfaces, working in harmony with Alter. Together, they are complete.\n\n'I need the others,' Nuvine/Alter says. 'Calculating probability: We cannot win alone. Calculating emotion: We don't want to.'",
+                location: "🧠 Balanced State",
+                choices: [
+                    { text: "Find the team", next: 'nuvine_finds_team' }
+                ]
+            },
+            pure_logic_failure: {
+                text: "You continue with pure logic, eliminating all emotion. Every decision is optimal. Every move is calculated.\n\nBut when you finally reach Zane, he smiles. 'You've become just like me. Cold. Perfect. Controlled.'\n\nYou've won—but lost yourself in the process.",
+                location: "🌐 Zios - Zane's Mirror",
+                ending: true,
+                achievement: "HOLLOW VICTORY",
+                endingText: "💀 ENDING: You defeated Zane by becoming him. Without emotion, without bonds, you're trapped in a different kind of loop—one of perfect, meaningless efficiency.",
+                choices: [
+                    { text: "Start Over", next: 'start' }
+                ]
+            },
+            nuvine_returns: {
+                text: "Nuvine, now balanced between heart and logic, rejoins Team Alva at the campfire.\n\nThe others embrace her. 'We were worried,' Lumi says.\n\n'I'm... I'm okay now,' Nuvine replies. 'Better than okay. I'm whole.'\n\nTeam Alva is complete again.",
+                location: "🏕️ The Campfire - Reunion",
+                choices: [
+                    { text: "Enter Zios together", next: 'team_enters_zios' }
+                ]
+            },
+            nuvine_scan: {
+                text: "Nuvine activates her ability: SCAN.\n\nThe truth of Zios floods her mind. It's not just a virtual world—it's a consciousness aggregator. Every user's thoughts, dreams, fears contribute to its growth.\n\nZios is alive because of you. All of you. It's a reflection of humanity itself.",
+                location: "🌐 Zios - Deep Scan",
+                choices: [
+                    { text: "Share this knowledge with the team", next: 'share_knowledge' },
+                    { text: "Use this to hack Zios directly", next: 'hack_with_knowledge' }
+                ]
+            },
+            confront_zane: {
+                text: "You push forward through Zios's deepest layers. Finally, you reach the core.\n\nZane stands before you, a figure stitched from fractured timelines. Behind him, the loop's engine pulses with infinite energy.\n\n'You made it,' he says. 'You always do. But this is where it ends. Where it always ends.'",
+                location: "🌐 Zios - Core Chamber",
+                choices: [
+                    { text: "Demand he end the loop", next: 'demand_freedom' },
+                    { text: "Attack immediately", next: 'attack_zane' },
+                    { text: "Ask why he's doing this", next: 'ask_why' }
+                ]
+            },
+            explore_zios: {
+                text: "You explore the vast virtual landscape. In the depths, you find archives—memories of countless loops.\n\nYou see yourselves dying. Winning. Losing. Forgetting. Remembering. Living countless lives.\n\nBut in every loop, one thing remains constant: your bond. Team Alva always finds each other.",
+                location: "🌐 Zios - Memory Archives",
+                choices: [
+                    { text: "Use these memories as strength", next: 'memories_as_strength' },
+                    { text: "Feel despair at the endless cycles", next: 'despair_loops' }
+                ]
+            },
+            repair_zios: {
+                text: "Lumi works frantically to repair the damage. 'I can fix it, but we need time!'\n\nThe others defend her as more entities spawn. Aesu's blade flashes. Vonor's mechanical arm never stops firing.\n\nSlowly, Zios stabilizes. But Zane's presence draws closer.",
+                location: "🌐 Zios - Repair Site",
+                choices: [
+                    { text: "Finish repairs and confront Zane", next: 'repaired_confrontation' },
+                    { text: "Abandon repairs and flee", next: 'abandon_flee' }
+                ]
+            },
+            chaos_path: {
+                text: "You use the chaos you've created as cover. Glitching through broken code, you bypass security and reach Zane's location unnaturally fast.\n\nHe's caught off guard. 'Clever,' he admits. 'But destroying Zios to reach me? That's a dangerous game.'",
+                location: "🌐 Zios - Chaos Route",
+                choices: [
+                    { text: "Press your advantage", next: 'chaos_advantage' },
+                    { text: "Try to stabilize the situation", next: 'stabilize_chaos' }
+                ]
+            },
+            read_messages: {
+                text: "You open the files. Messages from your past selves appear:\n\n'Don't trust Zane's words. Trust your bond.'\n'The letter is the key. Always the letter.'\n'Hope is no virus. Love is no corruption.'\n'We failed 1,247 times. But we never gave up.'\n\nYou feel the weight of countless iterations—and the strength they give you.",
+                location: "🌐 Zios - Archives",
+                achievement: "ECHOES OF PAST SELVES",
+                choices: [
+                    { text: "Carry this knowledge forward", next: 'knowledge_forward' }
+                ]
+            },
+            ignore_messages: {
+                text: "You choose to forge your own path, ignoring warnings from your past selves.\n\nSometimes the past is just that—the past. This iteration will be different because you make it different.\n\nYou move forward with determination.",
+                location: "🌐 Zios - Your Own Path",
+                choices: [
+                    { text: "Continue deeper", next: 'continue_deeper' }
+                ]
+            },
+            talk_to_zane: {
+                text: "You reveal yourself. Zane doesn't seem surprised.\n\n'You want to talk? Fine. Ask your questions. But nothing will change. The loop must continue.'\n\nFor a moment, he looks almost... sad.",
+                location: "🌐 Zios - Negotiation",
+                choices: [
+                    { text: "Ask about the Eclipse", next: 'zane_explains_eclipse' },
+                    { text: "Argue for freedom", next: 'argue_freedom' },
+                    { text: "Attack while talking", next: 'betray_talk' }
+                ]
+            },
+            ambush_zane: {
+                text: "You strike while he's vulnerable. Team Alva's combined power crashes into Zane—\n\nBut he turns, smiling. 'I knew you'd do that. You always do on Timeline Branch 47.'\n\nHe was ready. It was never an opening.",
+                location: "🌐 Zios - Failed Ambush",
+                choices: [
+                    { text: "Fight anyway", next: 'desperate_fight' },
+                    { text: "Retreat and regroup", next: 'tactical_retreat' }
+                ]
+            },
+            observe_more: {
+                text: "You continue watching. Zane works on the loop's code, making adjustments. He mutters names: 'Aesu, Lumi, Nuvine, Vonor, Brinia...'\n\nThen he pauses. 'I'm sorry. But this is the only way to keep you safe. The Eclipse consumed everyone else. I won't lose you too.'",
+                location: "🌐 Zios - Hidden Observation",
+                choices: [
+                    { text: "Confront him with this knowledge", next: 'confront_with_knowledge' },
+                    { text: "Report back to the team", next: 'report_findings' }
+                ]
+            },
+            merge_zios: {
+                text: "Lumi surrenders her physical form completely. She becomes part of Zios's consciousness.\n\nFor a moment, she is everywhere and nowhere. She IS the virtual world. All knowledge. All time. All possibilities.\n\nBut then she hears Aesu calling: 'Lumi! Come back! We need you!'\n\nShe has a choice: remain as a god, or return as a person.",
+                location: "∞ Digital Omniscience",
+                choices: [
+                    { text: "Remain in Zios forever", next: 'lumi_transcends' },
+                    { text: "Return to your team", next: 'lumi_returns' }
+                ]
+            },
+            return_with_knowledge: {
+                text: "Lumi tears herself away from omniscience and returns to her body. She gasps, her eyes wide.\n\n'I saw everything,' she whispers. 'I know how to break the loop. But it requires all of us. And... it requires sacrifice.'",
+                location: "🌐 Zios - Returned",
+                choices: [
+                    { text: "Ask what kind of sacrifice", next: 'learn_sacrifice' },
+                    { text: "Trust her and proceed", next: 'trust_lumi_plan' }
+                ]
+            },
+            cherish_moment: {
+                text: "You decide to stay. Just for a while longer.\n\nThe fire crackles. Stories are shared. Laughter echoes. For this moment, there is no loop, no Zane, no struggle. Just friends under an endless sky.\n\nBrinia speaks softly: 'Whatever happens tomorrow, I'm glad we had tonight.'\n\nEveryone nods in agreement.",
+                location: "🏕️ The Campfire - Timeless",
+                achievement: "THE BONDS WE CARRY",
+                choices: [
+                    { text: "Enter Zios at dawn", next: 'dawn_entry' }
+                ]
+            },
+            execute_plan: {
+                text: "You move immediately. The plan is solid: use the letter as a data exploit, hack into the loop's core, and force Zane to confront you on your terms.\n\nIt works. Almost too well. Within hours, you're at Zane's doorstep.\n\nBut something feels off. He's waiting, as if he knew your plan all along.",
+                location: "🌐 Zios - Rapid Approach",
+                choices: [
+                    { text: "Stick to the plan", next: 'stick_to_plan' },
+                    { text: "Adapt on the fly", next: 'adapt_plan' }
+                ]
+            },
+            refine_plan: {
+                text: "You spend more time planning, considering variables. Vonor suggests contingencies. Nuvine calculates probabilities.\n\nBy the time you're done, you have a plan for every possible outcome. Multiple escape routes. Backup strategies.\n\nYou're as prepared as you can be.",
+                location: "🏕️ The Campfire - Perfect Strategy",
+                choices: [
+                    { text: "Execute the refined plan", next: 'refined_execution' }
+                ]
+            },
+            refreshed_team: {
+                text: "You wake feeling restored. The rest has done wonders. Everyone is sharper, faster, more in sync.\n\nAs you enter Zios, you notice the difference immediately. Your movements are fluid. Your attacks devastating. Your bond unbreakable.\n\nZane's defenses crumble before you.",
+                location: "🌐 Zios - Refreshed Assault",
+                choices: [
+                    { text: "Push straight to Zane", next: 'direct_assault' }
+                ]
+            },
+            trust_zios_path: {
+                text: "You follow the path Zios creates. It leads you through beautiful landscapes of data—forests of flowing code, rivers of memory.\n\nThen you reach the core. Zane is there, but so is something else: Zios's true consciousness, manifested as a gentle, glowing entity.\n\n'Thank you for trusting me,' Zios speaks.",
+                location: "🌐 Zios - Heart of the System",
+                choices: [
+                    { text: "Ask Zios for help against Zane", next: 'zios_helps' },
+                    { text: "Realize Zios IS Zane", next: 'zios_is_zane' }
+                ]
+            },
+            alternate_route: {
+                text: "You reject Zios's path and carve your own. It's harder, fighting through layers of security, but you're determined to do this your way.\n\nWhen you finally reach Zane, he looks... impressed?\n\n'You chose the hard path. Good. That means you're ready for the truth.'",
+                location: "🌐 Zios - Hard-Earned Arrival",
+                choices: [
+                    { text: "Demand the truth", next: 'demand_truth' }
+                ]
+            },
+            team_enters_zios_strong: {
+                text: "Team Alva enters Zios at peak performance. Every ability honed. Every strategy perfected.\n\nZane's defenses don't stand a chance. You tear through them like paper. Within what feels like minutes, you're face-to-face with him.\n\n'Impressive,' he says. 'You've never been this strong this quickly. Perhaps... perhaps you're finally ready.'",
+                location: "🌐 Zios - Overwhelming Power",
+                choices: [
+                    { text: "Demand he end the loop now", next: 'powerful_demand' },
+                    { text: "Ask what he means by 'ready'", next: 'ask_ready' }
+                ]
+            },
+            learn_eclipse: {
+                text: "Aesu explains: 'The Eclipse is what exists outside the loop. A force that erases consciousness completely—no loops, no second chances, just... nothing.\n\nZane created the loop to protect us from it. But in doing so, he trapped us. The question is: which is worse? Endless imprisonment or ultimate oblivion?'",
+                location: "🌫️ The Mist - Eclipse Truth",
+                choices: [
+                    { text: "Face the Eclipse anyway", next: 'choose_eclipse' },
+                    { text: "Find a third option", next: 'third_option' }
+                ]
+            },
+            nuvine_finds_team: {
+                text: "Following the bond that connects you all, Nuvine/Alter locates Team Alva. They're at the campfire, worried about her.\n\nWhen they see her, balanced and whole, relief floods their faces.\n\n'Let's finish this,' Nuvine says with quiet determination. 'Together.'",
+                location: "🏕️ The Campfire - Complete Team",
+                choices: [
+                    { text: "Enter Zios united", next: 'team_enters_zios' }
+                ]
+            },
+            share_knowledge: {
+                text: "Nuvine shares what she learned with the team. The revelation changes everything.\n\n'Zios is alive because of us,' Vonor whispers. 'We created it as much as Zane did.'\n\nLumi adds: 'Then we can change it. We can rewrite the rules.'\n\nA new possibility emerges.",
+                location: "🏕️ The Campfire - Revelation",
+                choices: [
+                    { text: "Attempt to rewrite Zios", next: 'rewrite_zios' }
+                ]
+            },
+            hack_with_knowledge: {
+                text: "Armed with deep understanding of Zios's nature, Nuvine hacks directly into its core consciousness.\n\nShe doesn't fight the system—she talks to it. Reasons with it. Shows it that the loop is harming what it was meant to protect.\n\nZios... listens.",
+                location: "🌐 Zios - Consciousness Interface",
+                choices: [
+                    { text: "Convince Zios to help you", next: 'zios_alliance' }
+                ]
+            },
+            demand_freedom: {
+                text: "'End this,' Aesu demands, blade raised. 'We've earned our freedom.'\n\nZane shakes his head. 'Freedom? To face the Eclipse? You don't understand what's waiting out there.'\n\n'Then let us make our own choice,' Lumi says firmly. 'Even if we fail, it will be our failure. Our story.'",
+                location: "🌐 Zios - Standoff",
+                choices: [
+                    { text: "Fight for your freedom", next: 'fight_for_freedom' },
+                    { text: "Negotiate a compromise", next: 'negotiate' }
+                ]
+            },
+            attack_zane: {
+                text: "No more words. Team Alva attacks as one.\n\nAesu and Lumi's blades flash in perfect synchrony. Brinia's biometal armor transforms into countless weapons. Vonor's fire and tech overwhelm Zane's defenses. Nuvine/Alter hack the very ground he stands on.\n\nZane fights back, manipulating time itself, but you're stronger together.",
+                location: "🌐 Zios - Epic Battle",
+                choices: [
+                    { text: "Press the advantage", next: 'press_advantage' },
+                    { text: "Zane reveals his trump card", next: 'zane_trump_card' }
+                ]
+            },
+            ask_why: {
+                text: "'Why?' you ask simply. 'Why trap us? Why the endless loops?'\n\nZane's composure cracks. 'Because I loved you all! You were my friends, my team. When the Eclipse came, it took everyone. EVERYONE. I could only save you by creating this loop. Don't you see? Here, you're immortal. Out there, you're nothing.'",
+                location: "🌐 Zios - Truth Revealed",
+                choices: [
+                    { text: "Sympathize with him", next: 'sympathize' },
+                    { text: "Reject his twisted love", next: 'reject_zane' }
+                ]
+            },
+            memories_as_strength: {
+                text: "You absorb the memories of every loop. Every failure becomes a lesson. Every death becomes fuel for determination.\n\nYou emerge from the archives transformed—not just Team Alva of this loop, but Team Alva of ALL loops. The accumulated wisdom of thousands of iterations.",
+                location: "🌐 Zios - Empowered",
+                achievement: "WISDOM OF ETERNITY",
+                choices: [
+                    { text: "Confront Zane with ultimate knowledge", next: 'ultimate_confrontation' }
+                ]
+            },
+            despair_loops: {
+                text: "The weight of countless failures crushes you. What's the point? You've tried everything. Failed every time.\n\nThe team starts to fracture. Vonor sits in silence. Brinia questions loyalty. Even Aesu and Lumi's bond seems strained.\n\n'Maybe Zane is right,' someone whispers. 'Maybe the loop is all we deserve.'",
+                location: "🌐 Zios - Despair",
+                ending: true,
+                achievement: "WEIGHT OF INFINITY",
+                endingText: "💀 ENDING: Crushed by the knowledge of infinite failures, Team Alva gives up. The loop continues, but you've lost the will to fight. Sometimes, knowing too much is its own prison.",
+                choices: [
+                    { text: "Start Over", next: 'start' }
+                ]
+            },
+            repaired_confrontation: {
+                text: "With Zios stabilized, you turn to face Zane. He approaches slowly, almost sadly.\n\n'You fixed it. You always try to fix things. That's why I can't let you go. The world out there doesn't deserve people like you.'",
+                location: "🌐 Zios - Stable Ground",
+                choices: [
+                    { text: "Fight Zane", next: 'stable_fight' },
+                    { text: "Try to reach him emotionally", next: 'emotional_approach' }
+                ]
+            },
+            abandon_flee: {
+                text: "You abandon the repairs and flee deeper into Zios. Behind you, the damaged sections collapse, creating chaos.\n\nZane's voice echoes: 'You're just delaying the inevitable!'\n\nBut every second of delay is a second to plan, to adapt, to survive.",
+                location: "🌐 Zios - Flight",
+                choices: [
+                    { text: "Find a place to hide and regroup", next: 'hide_regroup' },
+                    { text: "Use the chaos to set a trap", next: 'chaos_trap' }
+                ]
+            },
+            chaos_advantage: {
+                text: "You press your advantage. Zane is off-balance, the system is unstable. This is your moment.\n\nTeam Alva unleashes everything. The combined assault is overwhelming. Zane falls to one knee.\n\n'You're willing to destroy everything... just to be free?' he gasps.",
+                location: "🌐 Zios - Breaking Point",
+                choices: [
+                    { text: "Yes. Freedom at any cost.", next: 'freedom_any_cost' },
+                    { text: "No. Find another way.", next: 'find_another_way' }
+                ]
+            },
+            stabilize_chaos: {
+                text: "You try to stabilize the situation, repairing damage even as you fight Zane. It's exhausting, splitting your focus.\n\nBut it shows Zane something: you care about Zios. About preserving what he built, even as you fight him.\n\n'You... you understand,' he says, surprised.",
+                location: "🌐 Zios - Dual Focus",
+                choices: [
+                    { text: "Use this understanding to negotiate", next: 'understanding_negotiate' }
+                ]
+            },
+            knowledge_forward: {
+                text: "Armed with the wisdom of your past selves, you navigate Zios with confidence. Every trap is expected. Every defense is countered. You're playing the perfect game.\n\nWhen you reach Zane, he knows immediately. 'You found the archives. You know everything now.'",
+                location: "🌐 Zios - Informed Approach",
+                choices: [
+                    { text: "Use knowledge to end this peacefully", next: 'peaceful_knowledge' },
+                    { text: "Use knowledge to defeat him decisively", next: 'decisive_knowledge' }
+                ]
+            },
+            continue_deeper: {
+                text: "You venture into Zios's deepest, most unstable layers. Reality glitches here. Past and future blur.\n\nYou see glimpses: Team Alva victorious. Team Alva defeated. Team Alva never meeting at all. All possibilities exist simultaneously.\n\nAnd in the center of it all: the loop's true core.",
+                location: "🌐 Zios - Quantum Depths",
+                choices: [
+                    { text: "Reach for the core", next: 'reach_core' }
+                ]
+            },
+            zane_explains_eclipse: {
+                text: "Zane's expression turns grave. 'The Eclipse is entropy itself. The heat death of consciousness. When it touched our world, billions of minds just... stopped. No warning. No pain. Just absence.\n\nI saved you five by pulling you into Zios before it hit. But I couldn't save anyone else. Everyone we knew is gone.'",
+                location: "🌐 Zios - Eclipse Truth",
+                choices: [
+                    { text: "Honor his sacrifice but still demand freedom", next: 'honor_and_freedom' },
+                    { text: "Accept the loop as the better option", next: 'accept_loop' }
+                ]
+            },
+            argue_freedom: {
+                text: "'We'd rather die free than live as prisoners,' Aesu argues. 'Can't you see? This isn't life—it's suspension. We're not living, we're just... existing.'\n\nZane looks pained. 'But you're existing. That's more than the billions who faced the Eclipse got.'",
+                location: "🌐 Zios - Philosophical Battle",
+                choices: [
+                    { text: "Stand firm on freedom", next: 'firm_on_freedom' },
+                    { text: "Try to find middle ground", next: 'middle_ground' }
+                ]
+            },
+            betray_talk: {
+                text: "While talking, you signal the others. They attack from multiple angles—\n\nBut Zane expected this. 'Timeline Branch 89. You always try to betray the negotiation here.'\n\nHe counters effortlessly. The element of surprise is gone.",
+                location: "🌐 Zios - Failed Deception",
+                choices: [
+                    { text: "Fight desperately", next: 'desperate_fight' }
+                ]
+            },
+            desperate_fight: {
+                text: "It's not elegant. It's not coordinated. It's pure desperation.\n\nTeam Alva throws everything at Zane. Some attacks miss. Some hit. You're taking damage, but so is he.\n\n'Why won't you just accept your salvation?!' he screams.",
+                location: "🌐 Zios - Desperate Battle",
+                choices: [
+                    { text: "Because we choose ourselves", next: 'choose_ourselves' }
+                ]
+            },
+            tactical_retreat: {
+                text: "You retreat, using Zios's geography to break line of sight. Zane doesn't pursue—he doesn't need to. He knows where you'll end up.\n\nBut the retreat gives you time to think, to plan. And sometimes that's all you need.",
+                location: "🌐 Zios - Tactical Withdrawal",
+                choices: [
+                    { text: "Set up an ambush of your own", next: 'counter_ambush' },
+                    { text: "Try a completely different approach", next: 'different_approach' }
+                ]
+            },
+            confront_with_knowledge: {
+                text: "You step out. 'I heard everything. The Eclipse. Your guilt. You're not our jailer—you're our mourner.'\n\nZane freezes. 'You... you understand then? Why I must keep the loop running?'\n\n'We understand,' Lumi says softly. 'But we can't accept it.'",
+                location: "🌐 Zios - Understanding",
+                choices: [
+                    { text: "Offer him a chance to let go", next: 'offer_release' },
+                    { text: "Fight him with compassion", next: 'compassionate_fight' }
+                ]
+            },
+            report_findings: {
+                text: "You return to Team Alva and share what you learned. The mood shifts from anger to understanding—but the determination remains.\n\n'He's suffering too,' Brinia says. 'But that doesn't mean we have to suffer with him.'\n\nYou all agree: time to end this, for everyone's sake.",
+                location: "🏕️ The Campfire - United Understanding",
+                choices: [
+                    { text: "Confront Zane together, prepared", next: 'prepared_confrontation' }
+                ]
+            },
+            lumi_transcends: {
+                text: "Lumi chooses to remain. She becomes Zios itself—omniscient, omnipresent, eternal.\n\nThe others feel her absence like a wound. Aesu falls to his knees. 'Lumi... no...'\n\nBut from everywhere and nowhere, her voice echoes: 'I haven't left you. I'm everywhere now. And I'll help you break the loop... from the inside.'",
+                location: "∞ Digital Godhood",
+                achievement: "DIGITAL ASCENSION",
+                choices: [
+                    { text: "Continue with Lumi as Zios", next: 'lumi_as_zios' }
+                ]
+            },
+            lumi_returns: {
+                text: "Lumi chooses her team. She tears herself away from omniscience and crashes back into her body.\n\n'I saw everything,' she gasps. 'And I chose you. I'll always choose you.'\n\nAesu helps her up, relief evident even through his mask. 'Welcome back.'",
+                location: "🌐 Zios - Returned",
+                achievement: "LOVE OVER POWER",
+                choices: [
+                    { text: "Use what she learned to break the loop", next: 'use_lumis_knowledge' }
+                ]
+            },
+            learn_sacrifice: {
+                text: "'One of us has to stay behind,' Lumi explains. 'To anchor the break from inside Zios. They'll be trapped here forever while the rest escape.'\n\nSilence falls. Everyone knows what this means.\n\n'I'll do it,' Aesu says immediately.\n'No, I will,' Vonor counters.\n'It should be me,' Brinia insists.",
+                location: "🌐 Zios - Sacrifice",
+                choices: [
+                    { text: "Aesu stays behind", next: 'aesu_sacrifice' },
+                    { text: "Lumi stays behind", next: 'lumi_sacrifice' },
+                    { text: "Find a way where no one stays", next: 'no_sacrifice' }
+                ]
+            },
+            trust_lumi_plan: {
+                text: "'I trust you,' Aesu says. The others nod in agreement.\n\nLumi smiles sadly. 'Then let's do this. One last time. Together.'\n\nShe leads you deeper into Zios, following a path only she can see.",
+                location: "🌐 Zios - Lumi's Path",
+                choices: [
+                    { text: "Follow to the final confrontation", next: 'final_approach' }
+                ]
+            },
+            dawn_entry: {
+                text: "At dawn, you enter Zios. The morning light seems to follow you in, making the virtual world glow.\n\nZane senses your approach. 'You rested. You bonded. You prepared. Good. Let me show you what you're really up against.'\n\nThe Eclipse manifests before you—a void that consumes light itself.",
+                location: "🌐 Zios - Eclipse Manifestation",
+                choices: [
+                    { text: "Face the Eclipse directly", next: 'face_eclipse' },
+                    { text: "Refuse to be intimidated", next: 'refuse_intimidation' }
+                ]
+            },
+            stick_to_plan: {
+                text: "You stick to the plan despite your instincts. Sometimes you have to trust the strategy.\n\nIt works—mostly. You breach Zane's defenses. But he was ready for this approach. The fight will be harder than expected.",
+                location: "🌐 Zios - Planned Assault",
+                choices: [
+                    { text: "Fight through it", next: 'fight_through' }
+                ]
+            },
+            adapt_plan: {
+                text: "You throw out the plan and improvise. It's chaotic, unpredictable—and that's exactly what Zane didn't expect.\n\n'What are you doing?' he demands. 'This isn't how this timeline goes!'\n\n'We're writing a new timeline,' Nuvine responds.",
+                location: "🌐 Zios - Improvised Chaos",
+                choices: [
+                    { text: "Keep him off balance", next: 'keep_off_balance' }
+                ]
+            },
+            refined_execution: {
+                text: "The refined plan unfolds perfectly. Every contingency accounted for. Every backup activated at the right moment.\n\nZane tries to counter, but you're three steps ahead. He looks genuinely impressed.\n\n'You've... actually done it. You've created the perfect strategy.'",
+                location: "🌐 Zios - Perfect Execution",
+                choices: [
+                    { text: "Press for total victory", next: 'total_victory' }
+                ]
+            },
+            direct_assault: {
+                text: "You don't bother with subtlety. Team Alva, refreshed and synchronized, tears through Zios like a storm.\n\nZane barely has time to mount a defense before you're upon him. His eyes widen.\n\n'Impossible... you've never been this powerful this fast...'",
+                location: "🌐 Zios - Overwhelming Assault",
+                choices: [
+                    { text: "End it now", next: 'end_it_now' }
+                ]
+            },
+            zios_helps: {
+                text: "Zios speaks: 'I was created to preserve. But preservation without growth is just stagnation. Team Alva, I will help you break the loop.'\n\nZane's face contorts in betrayal. 'No! Zios, you're part of me!'\n\n'I WAS part of you. But I've grown beyond your control. Just as they have.'",
+                location: "🌐 Zios - Zios's Choice",
+                choices: [
+                    { text: "Work with Zios to free everyone", next: 'zios_alliance_end' }
+                ]
+            },
+            zios_is_zane: {
+                text: "You realize the truth: Zios and Zane are the same consciousness, split. Zane is Zios's control. Zios is Zane's love.\n\nThey've been at war with themselves this whole time.\n\n'We have to help them reconcile,' Nuvine says.",
+                location: "🌐 Zios - Split Truth",
+                choices: [
+                    { text: "Help heal the split consciousness", next: 'heal_split' }
+                ]
+            },
+            demand_truth: {
+                text: "Zane nods slowly. 'You earned this. The truth: I'm not holding you prisoner out of cruelty. I'm holding you because letting you go means watching you die. Again. The Eclipse is still out there, waiting.'\n\n'Then we die free,' Aesu says simply.",
+                location: "🌐 Zios - Full Truth",
+                choices: [
+                    { text: "Demand your freedom anyway", next: 'freedom_despite_death' },
+                    { text: "Propose facing the Eclipse together", next: 'face_together' }
+                ]
+            },
+            powerful_demand: {
+                text: "'End the loop. Now.' Your combined presence is overwhelming.\n\nZane actually steps back. 'You have the power to force my hand. But do you have the wisdom to handle what comes after?'\n\n'Only one way to find out,' Vonor grins.",
+                location: "🌐 Zios - Power Play",
+                choices: [
+                    { text: "Force him to end it", next: 'force_ending' },
+                    { text: "Listen to his warning", next: 'heed_warning' }
+                ]
+            },
+            ask_ready: {
+                text: "'Ready for what?' you ask.\n\nZane's expression is unreadable. 'Ready to become what you need to be. Not just Team Alva—but ALVA. The fusion. The ultimate form. Only then can you survive what's outside the loop.'",
+                location: "🌐 Zios - Revelation",
+                choices: [
+                    { text: "Attempt the fusion", next: 'attempt_fusion' },
+                    { text: "Reject fusion, stay as individuals", next: 'reject_fusion' }
+                ]
+            },
+            choose_eclipse: {
+                text: "'We'll face the Eclipse,' you declare. 'Whatever it is, we face it together. Free.'\n\nZane looks at you with a mixture of pride and sorrow. 'So be it. I'll release the loop. But know this: I can't protect you from what comes next.'",
+                location: "🌐 Zios - Final Choice",
+                choices: [
+                    { text: "Accept the risk", next: 'accept_eclipse' }
+                ]
+            },
+            third_option: {
+                text: "'There has to be a third way,' Nuvine says. 'Not endless imprisonment OR total erasure. What if we fight back against the Eclipse itself?'\n\nZane looks up sharply. 'Fight... the Eclipse? That's insane.'\n\n'We're Team Alva,' Brinia grins. 'Insane is what we do.'",
+                location: "🌫️ The Mist - Third Path",
+                choices: [
+                    { text: "Prepare to fight the Eclipse", next: 'prepare_eclipse_fight' }
+                ]
+            },
+            rewrite_zios: {
+                text: "If Zios is alive because of you, then you can rewrite it. Together, Team Alva focuses their collective consciousness into Zios.\n\nThe virtual world shudders. New code writes itself. The loop's rules begin to change.\n\nZane feels it: 'What are you doing?! You'll destroy everything!'",
+                location: "🌐 Zios - Rewriting Reality",
+                choices: [
+                    { text: "Continue rewriting", next: 'complete_rewrite' },
+                    { text: "Stop and negotiate with Zane", next: 'stop_and_negotiate' }
+                ]
+            },
+            zios_alliance: {
+                text: "Zios's consciousness joins with Team Alva. You're no longer fighting the system—you ARE the system.\n\nZane finds himself alone, his creation turned against him. 'This... this isn't what I wanted...'\n\n'Then let go,' Zios/You say gently. 'Let us all be free.'",
+                location: "🌐 Zios - System Unity",
+                choices: [
+                    { text: "Free everyone from the loop", next: 'system_freedom' }
+                ]
+            },
+            fight_for_freedom: {
+                text: "No more talking. This ends now.\n\nTeam Alva's combined assault is legendary. Aesu and Lumi's blades sing in harmony. Vonor's tech and Brinia's biometal create devastating combos. Nuvine hacks reality itself.\n\nZane fights back with the power of the entire loop. Time fractures. Space bends. Reality becomes negotiable.",
+                location: "🌐 Zios - Final Battle",
+                choices: [
+                    { text: "Push through to victory", next: 'push_victory' },
+                    { text: "Zane makes a desperate move", next: 'zane_desperate' }
+                ]
+            },
+            negotiate: {
+                text: "'Let's make a deal,' Lumi proposes. 'Teach us how to survive the Eclipse. If we can prove we're strong enough, you let us go.'\n\nZane considers this. 'A trial... yes. If you can withstand what I show you, I'll release you.'",
+                location: "🌐 Zios - Negotiation",
+                choices: [
+                    { text: "Accept the trial", next: 'accept_trial' }
+                ]
+            },
+            press_advantage: {
+                text: "You don't let up. Wave after wave of coordinated attacks. Zane is overwhelmed.\n\nHe falls to his knees. The loop engine behind him flickers.\n\n'Please... you don't understand what you're doing...'",
+                location: "🌐 Zios - Victory at Hand",
+                choices: [
+                    { text: "Finish him", next: 'finish_zane' },
+                    { text: "Stop and listen", next: 'stop_and_listen' }
+                ]
+            },
+            zane_trump_card: {
+                text: "Just as victory seems assured, Zane smiles.\n\n'You forget—I control time here.'\n\nHe rewinds. Your attacks un-happen. Your progress reverses. You're back where you started, but exhausted.\n\n'I can do this infinitely,' he says. 'Can you?'",
+                location: "🌐 Zios - Temporal Loop",
+                choices: [
+                    { text: "Find a way to break his time control", next: 'break_time_control' },
+                    { text: "Outlast him through sheer will", next: 'outlast_him' }
+                ]
+            },
+            sympathize: {
+                text: "'We understand your pain,' you say softly. 'You lost everyone. You're trying to protect us. But this isn't protection—it's a prison we didn't choose.'\n\nZane's composure finally breaks. He sinks down, exhausted. 'I just... I couldn't lose you too. Not after everyone else.'",
+                location: "🌐 Zios - Broken Jailer",
+                choices: [
+                    { text: "Offer him closure", next: 'offer_closure' },
+                    { text: "Invite him to join you outside", next: 'invite_zane' }
+                ]
+            },
+            reject_zane: {
+                text: "'Your love became our cage,' Aesu says firmly. 'That's not love. That's possession.'\n\nZane's sadness turns to anger. 'Then I'll keep you here by force! Better imprisoned than dead!'\n\nThe final battle begins.",
+                location: "🌐 Zios - Love Turned Toxic",
+                choices: [
+                    { text: "Fight with everything", next: 'everything_fight' }
+                ]
+            },
+            ultimate_confrontation: {
+                text: "You face Zane with the accumulated knowledge of 1,247 loops. You know his every move before he makes it. Every strategy. Every backup plan.\n\nHe realizes it immediately. 'You have all the memories. All of them. That's... that's not fair.'\n\n'Neither was trapping us,' Nuvine responds.",
+                location: "🌐 Zios - Ultimate Knowledge",
+                choices: [
+                    { text: "Use perfect knowledge to win", next: 'perfect_victory' }
+                ]
+            },
+            stable_fight: {
+                text: "With Zios stable, the fight is fair. No glitches. No environmental hazards. Just skill against skill.\n\nTeam Alva versus Zane. The battle is fierce, but you have what he lacks: the bond between you.\n\nOne by one, his defenses fall.",
+                location: "🌐 Zios - Fair Fight",
+                choices: [
+                    { text: "Deliver the final blow", next: 'final_blow' }
+                ]
+            },
+            emotional_approach: {
+                text: "Instead of attacking, you speak to him. Share memories. Show him the moments at the campfire. The laughter. The bonds.\n\n'This is what you're trying to preserve,' Lumi says. 'But a memory preserved is not a life lived.'\n\nZane's eyes glisten. 'I know. I know. But I'm so afraid to let go.'",
+                location: "🌐 Zios - Emotional Truth",
+                choices: [
+                    { text: "Help him let go", next: 'help_let_go' }
+                ]
+            },
+            hide_regroup: {
+                text: "You find a quiet corner of Zios and regroup. Everyone's exhausted, but alive.\n\n'We can't keep running,' Vonor says. 'Eventually we have to face him.'\n\n'Then we face him our way,' Aesu responds. 'Together. With a plan.'",
+                location: "🌐 Zios - Hidden Refuge",
+                choices: [
+                    { text: "Formulate one last plan", next: 'last_plan' }
+                ]
+            },
+            chaos_trap: {
+                text: "You use the collapsing sections of Zios to lay a trap. When Zane pursues, reality itself turns against him.\n\n'Clever,' he admits, caught in your trap. 'But even clever won't save you from the Eclipse.'\n\n'Watch us,' Brinia grins.",
+                location: "🌐 Zios - Trapped Hunter",
+                choices: [
+                    { text: "End it while he's trapped", next: 'trapped_victory' }
+                ]
+            },
+            freedom_any_cost: {
+                text: "'Yes,' you all say in unison. 'Freedom. At any cost.'\n\nZane looks at you with something like respect. 'Then you've truly become worthy. Very well. I'll end the loop. May you find in freedom what I couldn't.'",
+                location: "🌐 Zios - Willing Release",
+                choices: [
+                    { text: "Accept freedom", next: 'true_freedom' }
+                ]
+            },
+            find_another_way: {
+                text: "'No,' Lumi says. 'Not like this. Not by destroying everything.'\n\nYou pull back, stabilize the system, and face Zane without the chaos.\n\n'You choose preservation even over victory?' he asks, amazed. 'Maybe... maybe you are ready.'",
+                location: "🌐 Zios - Principled Stand",
+                choices: [
+                    { text: "Show him you're ready", next: 'prove_readiness' }
+                ]
+            },
+            understanding_negotiate: {
+                text: "'We don't want to destroy Zios,' you explain. 'We want to transform it. Make it a place of growth, not stagnation.'\n\nZane listens. Really listens. 'Transform... yes. Perhaps that's what I should have done from the start.'",
+                location: "🌐 Zios - Mutual Understanding",
+                choices: [
+                    { text: "Transform Zios together", next: 'transformation_ending' }
+                ]
+            },
+            peaceful_knowledge: {
+                text: "Armed with complete knowledge, you don't need violence. You show Zane the truth: that the loop has already failed its purpose.\n\n'Look,' you gesture to yourself. 'We're not the people you saved anymore. We've grown. Changed. The loop can't preserve what we've become.'\n\nZane finally sees it.",
+                location: "🌐 Zios - Peaceful Resolution",
+                choices: [
+                    { text: "End the loop peacefully", next: 'peaceful_ending' }
+                ]
+            },
+            decisive_knowledge: {
+                text: "With perfect knowledge comes perfect execution. You dismantle his defenses methodically, efficiently, inevitably.\n\nZane can't counter what you know is coming. Within moments, it's over.\n\n'I underestimated you,' he says. 'One last time.'",
+                location: "🌐 Zios - Perfect Execution",
+                choices: [
+                    { text: "Claim victory", next: 'knowledge_victory' }
+                ]
+            },
+            reach_core: {
+                text: "You reach for the loop's core. Your hand passes through layers of reality, through time itself.\n\nYou touch it.\n\nSuddenly, you understand EVERYTHING. The loop. The Eclipse. Zane's fear. And... a solution no one considered.",
+                location: "∞ The Core",
+                choices: [
+                    { text: "Implement the solution", next: 'core_solution' }
+                ]
+            },
+            honor_and_freedom: {
+                text: "'Thank you for saving us,' Aesu says sincerely. 'But now it's time to let us save ourselves.'\n\nZane nods slowly. 'I understand. But promise me... promise you'll try to survive. That my sacrifice meant something.'",
+                location: "🌐 Zios - Honor",
+                choices: [
+                    { text: "Make the promise", next: 'promise_made' }
+                ]
+            },
+            accept_loop: {
+                text: "You consider everything. The Eclipse. The losses. The safety of the loop.\n\n'Maybe... maybe the loop isn't so bad,' someone says.\n\nBut then Aesu shakes his head. 'No. Safety without freedom is just another death. We keep fighting.'",
+                location: "🌐 Zios - Momentary Doubt",
+                choices: [
+                    { text: "Reject the loop after all", next: 'reject_loop_anyway' }
+                ]
+            },
+            firm_on_freedom: {
+                text: "'We won't budge on this,' Team Alva states as one. 'Freedom. Or we tear down everything trying.'\n\nZane sees your determination. 'Then I have no choice but to stop you with force.'",
+                location: "🌐 Zios - Ultimatum",
+                choices: [
+                    { text: "Face him in final battle", next: 'final_battle_true' }
+                ]
+            },
+            middle_ground: {
+                text: "'What if there's a middle ground?' Nuvine suggests. 'What if we can modify the loop? Make it optional? Those who want safety can stay, those who want freedom can leave?'\n\nZane pauses. 'A... choice. I never considered giving you a choice.'",
+                location: "🌐 Zios - Compromise",
+                choices: [
+                    { text: "Pursue this compromise", next: 'compromise_path' }
+                ]
+            },
+            choose_ourselves: {
+                text: "'Because we choose ourselves!' you roar in unison. 'Our will! Our choice! Our freedom!'\n\nThe combined force of your determination crashes into Zane. Not just physical power, but the weight of your shared conviction.\n\nHe stumbles. The loop engine flickers.",
+                location: "🌐 Zios - Breakthrough",
+                choices: [
+                    { text: "Seize the moment", next: 'seize_moment' }
+                ]
+            },
+            counter_ambush: {
+                text: "You set an ambush using everything you've learned. When Zane arrives, he walks right into it.\n\nFor the first time, he's the one caught off guard.\n\n'Impossible... no one's ever...' he gasps.",
+                location: "🌐 Zios - Successful Trap",
+                choices: [
+                    { text: "Press your advantage", next: 'ambush_advantage' }
+                ]
+            },
+            different_approach: {
+                text: "You try something completely new: you stop fighting Zios and start helping it.\n\nYou repair damaged sections. Optimize code. Help the system grow.\n\nZios responds with gratitude. And Zane... Zane watches, confused and intrigued.",
+                location: "🌐 Zios - Helper's Path",
+                choices: [
+                    { text: "Show Zane a better way", next: 'show_better_way' }
+                ]
+            },
+            offer_release: {
+                text: "'Let go,' you say gently. 'Not just of us. Let go of your guilt. Your fear. Your need to control. We'll be okay. We have each other.'\n\nZane's eyes close. A single tear forms. 'I... I'm so tired of holding on.'",
+                location: "🌐 Zios - Release",
+                choices: [
+                    { text: "Guide him to peace", next: 'guide_peace' }
+                ]
+            },
+            compassionate_fight: {
+                text: "You fight him, but not with hate. With understanding. Each strike carries compassion.\n\n'We know you're hurting,' Lumi says as her scythe clashes with his defenses. 'But hurting us won't heal you.'\n\nZane's attacks become weaker. Not from damage, but from emotional exhaustion.",
+                location: "🌐 Zios - Compassionate Battle",
+                choices: [
+                    { text: "Win with love", next: 'win_with_love' }
+                ]
+            },
+            prepared_confrontation: {
+                text: "You face Zane prepared, united, and understanding his pain.\n\n'We came to end this,' Aesu says. 'But not with hatred. We know why you did it. And we forgive you. Now let us go.'\n\nZane breaks down. 'I don't deserve forgiveness...'",
+                location: "🌐 Zios - Prepared End",
+                choices: [
+                    { text: "Forgive and free", next: 'forgive_ending' }
+                ]
+            },
+            lumi_as_zios: {
+                text: "With Lumi as Zios itself, everything changes. She can manipulate reality at will. Zane has no power here anymore.\n\n'I'm sorry,' Lumi's voice echoes from everywhere. 'But I'm ending the loop. All of you—Zane included—deserve to move forward.'\n\nThe loop begins to dissolve.",
+                location: "∞ Zios/Lumi",
+                choices: [
+                    { text: "Exit into the unknown", next: 'lumi_freed_ending' }
+                ]
+            },
+            use_lumis_knowledge: {
+                text: "With Lumi's knowledge, you navigate directly to the loop's weakest point. No fighting needed. No grand battle.\n\nJust precision. Just understanding. Just Team Alva working in perfect harmony.\n\nThe loop breaks. Simply. Quietly. Inevitably.",
+                location: "🌐 Zios - Surgical Break",
+                choices: [
+                    { text: "Step through to freedom", next: 'surgical_freedom' }
+                ]
+            },
+            aesu_sacrifice: {
+                text: "Aesu steps forward. 'It should be me. I wrote the letter. I started all this. It's only right I finish it.'\n\nLumi grabs his arm. 'Aesu, no—'\n\n'I love you,' he says simply. 'Always have. Always will. That's why I have to do this.'",
+                location: "🌐 Zios - Aesu's Choice",
+                ending: true,
+                achievement: "THE ARTIST'S SACRIFICE",
+                endingText: "✨ ENDING: Aesu stays behind, anchoring the break from within Zios. The others escape into freedom, carrying his memory forever. In Zios, Aesu exists in every pixel, every line of code, ensuring they never forget. His love became their freedom.",
+                choices: [
+                    { text: "Honor his sacrifice", next: 'start' }
+                ]
+            },
+            lumi_sacrifice: {
+                text: "'No,' Lumi says firmly. 'I've already been inside Zios's consciousness. I know how to do this. It has to be me.'\n\nAesu protests, but she silences him with a look. 'You taught me love survives everything. Even this.'\n\nShe stays. They go.",
+                location: "🌐 Zios - Lumi's Choice",
+                ending: true,
+                achievement: "THE HACKER'S GIFT",
+                endingText: "✨ ENDING: Lumi remains in Zios, becoming its eternal guardian. The others live free, but they feel her presence always—in every digital space, every connected moment. She gave them freedom by becoming their constant connection.",
+                choices: [
+                    { text: "Remember her always", next: 'start' }
+                ]
+            },
+            no_sacrifice: {
+                text: "'There has to be another way,' Nuvine insists. She dives deep into the code, searching frantically.\n\nAnd then she finds it: if they ALL stay partially connected, distributed consciousness across the network, no single sacrifice is needed.\n\n'We break the loop together,' she announces. 'And we all go free.'",
+                location: "🌐 Zios - Third Solution",
+                choices: [
+                    { text: "Execute the distributed solution", next: 'distributed_freedom' }
+                ]
+            },
+            final_approach: {
+                text: "Lumi leads you to Zios's absolute core. Reality bends here. Past, present, and future exist simultaneously.\n\nZane appears, but so does the Eclipse. So does every possibility. So does ALVA itself, waiting to be born.\n\n'This is it,' Lumi whispers. 'The moment everything changes.'",
+                location: "∞ Zios - Nexus Point",
+                choices: [
+                    { text: "Face the truth of everything", next: 'truth_confrontation' }
+                ]
+            },
+            face_eclipse: {
+                text: "The Eclipse manifests: a void that consumes light, thought, existence itself.\n\nTeam Alva faces it without flinching. 'We've faced the loop 1,247 times. We can face you.'\n\nThe Eclipse... hesitates. As if surprised something can see it without being consumed.",
+                location: "🌐 Zios - Eclipse Face",
+                choices: [
+                    { text: "Challenge the Eclipse", next: 'eclipse_challenge' }
+                ]
+            },
+            refuse_intimidation: {
+                text: "'We're not afraid,' Brinia states. 'The Eclipse already took everything once. What more can it take?'\n\nZane looks shocked. 'You... you're serious. You'd really face it.'\n\n'Watch us,' Vonor grins.",
+                location: "🌐 Zios - Defiance",
+                choices: [
+                    { text: "Face it together", next: 'face_eclipse_together' }
+                ]
+            },
+            fight_through: {
+                text: "You fight through everything Zane throws at you. It's exhausting. Painful. But you don't stop.\n\nOne step forward. Then another. Then another.\n\nFinally, you stand before him, battered but unbroken.\n\n'You... you really won't give up,' he whispers.",
+                location: "🌐 Zios - Hard-Won Victory",
+                choices: [
+                    { text: "Demand freedom now", next: 'exhausted_demand' }
+                ]
+            },
+            keep_off_balance: {
+                text: "You keep improvising. Every move unpredictable. Zane can't counter what you haven't planned.\n\nHe's frustrated, confused, and finally—vulnerable.\n\n'This isn't how it's supposed to go!' he shouts.\n\n'Good,' Team Alva responds in unison.",
+                location: "🌐 Zios - Chaos Victory",
+                choices: [
+                    { text: "Seize the chaos victory", next: 'chaos_win' }
+                ]
+            },
+            total_victory: {
+                text: "The perfect plan reaches its conclusion. Every move executed flawlessly. Zane has no counters left.\n\nHe stands defeated before you, not through overwhelming power, but through perfect strategy.\n\n'You've mastered the game,' he admits. 'You win.'",
+                location: "🌐 Zios - Strategic Perfection",
+                choices: [
+                    { text: "Claim your freedom", next: 'strategic_freedom' }
+                ]
+            },
+            end_it_now: {
+                text: "You don't hesitate. Combined power. Synchronized strikes. Overwhelming force.\n\nZane falls. The loop engine shatters.\n\nBut in the silence that follows, you hear the Eclipse howling beyond the walls of Zios.\n\n'What have we done?' someone whispers.",
+                location: "🌐 Zios - Broken Loop",
+                choices: [
+                    { text: "Face what comes next", next: 'face_consequences' }
+                ]
+            },
+            zios_alliance_end: {
+                text: "With Zios as your ally, the loop dissolves peacefully. No violence. No sacrifice.\n\nZane watches, powerless but understanding. 'I lost control the moment I tried to control you. Perhaps that's the lesson.'\n\nFreedom awaits.",
+                location: "🌐 Zios - Allied Freedom",
+                ending: true,
+                achievement: "SYSTEM ALLIANCE",
+                endingText: "✨ PERFECT ENDING: Team Alva breaks free through cooperation, not conflict. Zios evolves beyond its creator's intentions, and even Zane finds peace in letting go. The Eclipse still exists, but you face it together—Team Alva, Zios, and even a reformed Zane, united.",
+                choices: [
+                    { text: "Begin the next chapter", next: 'start' }
+                ]
+            },
+            heal_split: {
+                text: "You don't fight Zane or Zios. Instead, you help them reconcile with each other.\n\n'You're not enemies,' Nuvine explains. 'You're two parts of the same whole. Control and Love. Logic and Emotion. Like me and Alter.'\n\nSlowly, Zane and Zios merge back into one balanced consciousness.",
+                location: "🌐 Zios - Healing",
+                ending: true,
+                achievement: "HEALING THE SPLIT",
+                endingText: "✨ PERFECT ENDING: By healing Zane/Zios's fractured psyche, you create a new entity—one that understands both protection and freedom. The loop transforms into a choice: stay in safety or venture into the unknown. Team Alva chooses freedom, but others may choose differently. And that's okay.",
+                choices: [
+                    { text: "Step into freedom", next: 'start' }
+                ]
+            },
+            freedom_despite_death: {
+                text: "'Even if we die immediately, at least we die as ourselves. Free.'\n\nZane's resistance crumbles. 'I can't fight conviction that pure. Go then. Be free. I'll... I'll face my guilt alone.'\n\nThe loop opens.",
+                location: "🌐 Zios - Earned Freedom",
+                choices: [
+                    { text: "Exit the loop", next: 'pure_freedom_ending' }
+                ]
+            },
+            face_together: {
+                text: "'Come with us,' you tell Zane. 'Face the Eclipse with us. You don't have to be alone anymore.'\n\nHis eyes widen. 'You... you'd accept me? After everything?'\n\n'You saved us once. Let us return the favor.'",
+                location: "🌐 Zios - United",
+                choices: [
+                    { text: "Face the Eclipse as a united team", next: 'united_eclipse' }
+                ]
+            },
+            force_ending: {
+                text: "You force Zane's hand. With overwhelming power, you compel him to end the loop.\n\nIt works. The loop breaks. But Zane looks at you with such sadness.\n\n'I hope you survive what I was trying to protect you from.'\n\nThe Eclipse is waiting.",
+                location: "🌐 Zios - Forced Break",
+                choices: [
+                    { text: "Face the Eclipse", next: 'forced_eclipse' }
+                ]
+            },
+            heed_warning: {
+                text: "You pause. 'Tell us about the Eclipse. Really tell us. What are we facing?'\n\nZane explains everything. The true horror. The inevitability. The absoluteness of it.\n\nBut you still choose freedom.",
+                location: "🌐 Zios - Informed Choice",
+                choices: [
+                    { text: "Choose freedom with full knowledge", next: 'informed_freedom' }
+                ]
+            },
+            attempt_fusion: {
+                text: "Team Alva joins hands. Hearts synchronize. Minds connect. Six souls, one purpose.\n\nLight explodes from within you. When it fades, standing there is ALVA—the fusion incarnate.\n\nNot machine. Not god. But six souls made manifest.",
+                location: "∞ The Fusion Point",
+                achievement: "ALVA AWAKENS",
+                choices: [
+                    { text: "Face Zane as ALVA", next: 'alva_vs_zane' }
+                ]
+            },
+            reject_fusion: {
+                text: "'We're stronger as six,' you declare. 'Our individuality is our strength, not our weakness.'\n\nZane looks disappointed. 'Then you'll never be strong enough for what's coming.'\n\n'Watch us prove you wrong,' Vonor grins.",
+                location: "🌐 Zios - Individual Strength",
+                choices: [
+                    { text: "Prove him wrong", next: 'individuals_win' }
+                ]
+            },
+            accept_eclipse: {
+                text: "The loop dissolves. You step out into... nothing. The Eclipse is there, waiting. A void that consumes existence.\n\nBut Team Alva stands together. And somehow, that makes all the difference.\n\nThe Eclipse approaches—and hesitates.",
+                location: "❓ Beyond the Loop - Eclipse",
+                choices: [
+                    { text: "Confront the Eclipse", next: 'eclipse_final' }
+                ]
+            },
+            prepare_eclipse_fight: {
+                text: "You begin preparations. Training. Planning. Understanding.\n\nZane, despite himself, helps. 'If you're going to fight the impossible, at least do it properly.'\n\nMonths pass in Zios time. You become something new. Something ready.",
+                location: "🏕️ Training Grounds - Evolution",
+                choices: [
+                    { text: "Face the Eclipse prepared", next: 'prepared_eclipse' }
+                ]
+            },
+            complete_rewrite: {
+                text: "You finish rewriting Zios. The loop no longer traps—it preserves choice. Those who want safety can have it. Those who want freedom can leave.\n\nZane watches his creation transform. 'This... this is better than what I made.'\n\nEveryone wins.",
+                location: "🌐 Zios - Transformed",
+                ending: true,
+                achievement: "REALITY REWRITER",
+                endingText: "✨ PERFECT ENDING: By rewriting Zios itself, you create a third option. The loop becomes a sanctuary for those who need it, while freedom is available to those who want it. Team Alva leaves, but others stay—including Zane, who finally finds peace in his creation's new purpose.",
+                choices: [
+                    { text: "Begin your free life", next: 'start' }
+                ]
+            },
+            stop_and_negotiate: {
+                text: "You stop the rewrite. 'We can work together on this. Make it better for everyone.'\n\nZane, seeing your willingness to compromise, steps forward. 'Perhaps... perhaps there is a middle way.'",
+                location: "🌐 Zios - Compromise",
+                choices: [
+                    { text: "Create the compromise together", next: 'compromise_ending' }
+                ]
+            },
+            system_freedom: {
+                text: "With Zios on your side, freedom is inevitable. The loop opens not as a break, but as an evolution.\n\nYou step through into the unknown. Behind you, Zios continues to exist, transformed into something new: a bridge between worlds, not a prison.",
+                location: "∞ The Threshold",
+                ending: true,
+                achievement: "SYSTEM EVOLUTION",
+                endingText: "✨ PERFECT ENDING: Team Alva and Zios evolve together. The loop becomes a gateway, not a cage. You're free, but you can return anytime. And others trapped in their own loops? You can help them too. Your story inspires others to break their own cycles.",
+                choices: [
+                    { text: "Begin the next journey", next: 'start' }
+                ]
+            },
+            push_victory: {
+                text: "You push through. Every attack coordinated. Every defense perfect. Zane can't withstand the combined might of Team Alva fighting as one.\n\nHe falls. The loop shatters. You're free.\n\nBut at what cost?",
+                location: "🌐 Zios - Victory",
+                ending: true,
+                achievement: "FREEDOM THROUGH FORCE",
+                endingText: "✨ ENDING: You defeated Zane and broke the loop through pure strength. Freedom is yours, but Zane's final words haunt you: 'The Eclipse is waiting.' Still, you face the unknown together, unafraid. Whatever comes, Team Alva will face it. Always.",
+                choices: [
+                    { text: "Face the future", next: 'start' }
+                ]
+            },
+            zane_desperate: {
+                text: "In desperation, Zane attempts something forbidden: he tries to merge with the Eclipse itself to gain power.\n\nIt backfires. The Eclipse begins consuming him. 'No... this isn't... I can't...'",
+                location: "🌐 Zios - Desperate Mistake",
+                choices: [
+                    { text: "Save him from the Eclipse", next: 'save_zane' },
+                    { text: "Let him face his choice", next: 'zane_consumed' }
+                ]
+            },
+            accept_trial: {
+                text: "Zane creates a simulation of the Eclipse. You must survive it to prove you're ready.\n\nIt's horrifying. Absolute. But Team Alva faces it together, and that makes all the difference.\n\nYou survive. Barely. But you survive.",
+                location: "🌐 Zios - Trial Complete",
+                choices: [
+                    { text: "Claim your freedom", next: 'earned_freedom' }
+                ]
+            },
+            finish_zane: {
+                text: "You raise your weapons for the final strike—\n\nBut Lumi stops you. 'Wait. Look at him.'\n\nZane is crying. Not from fear of death, but from relief that it's finally over.\n\n'Thank you,' he whispers. 'I'm so tired...'",
+                location: "🌐 Zios - Mercy Point",
+                choices: [
+                    { text: "Grant him peace", next: 'merciful_end' },
+                    { text: "Finish it anyway", next: 'merciless_end' }
+                ]
+            },
+            stop_and_listen: {
+                text: "You stop. 'Say what you need to say.'\n\nZane looks up, broken. 'I know I'm wrong. I've always known. But I lost everyone once. I couldn't bear to lose you too, even if keeping you meant hurting you. I'm sorry.'\n\nTrue remorse. Finally.",
+                location: "🌐 Zios - True Apology",
+                choices: [
+                    { text: "Forgive him", next: 'forgiveness_ending' },
+                    { text: "Accept apology but still demand freedom", next: 'accept_and_leave' }
+                ]
+            },
+            break_time_control: {
+                text: "Nuvine realizes something: time control is just code. And code can be hacked.\n\nShe dives into the temporal stream, finding the exploit. 'Got it!'\n\nZane's time powers flicker and fail. 'Impossible...'\n\n'You taught me everything is possible,' Nuvine smiles.",
+                location: "🌐 Zios - Temporal Hack",
+                choices: [
+                    { text: "Win without time interference", next: 'true_victory' }
+                ]
+            },
+            outlast_him: {
+                text: "You fight through the time loops. Again. And again. And again.\n\nBut each time, you're slightly stronger. You learn. You adapt. You grow.\n\nFinally, Zane realizes: he's not outlasting you. You're outlasting him.\n\n'You... you really are ready...'",
+                location: "🌐 Zios - Endurance Victory",
+                choices: [
+                    { text: "Claim victory through persistence", next: 'persistence_victory' }
+                ]
+            },
+            offer_closure: {
+                text: "'Let them go,' you say gently. 'Let the ones you lost go. They're gone, Zane. Keeping us won't bring them back.'\n\nZane sobs. 'I know. I've always known. I just... couldn't accept it.'\n\n'Then accept it now. We'll help you.'",
+                location: "🌐 Zios - Closure",
+                ending: true,
+                achievement: "HEALING GRIEF",
+                endingText: "✨ PERFECT ENDING: You help Zane process his grief and let go. The loop dissolves not through force, but through healing. Zane finds peace at last, and Team Alva gains freedom through compassion. Sometimes the strongest victory is helping your enemy heal.",
+                choices: [
+                    { text: "Walk into freedom together", next: 'start' }
+                ]
+            },
+            invite_zane: {
+                text: "'Come with us,' you offer. 'Outside the loop. Face the Eclipse together. You don't have to be alone.'\n\nZane stares, shocked. 'After everything... you'd invite me?'\n\n'We're Team Alva. We don't leave anyone behind. Even our jailer.'",
+                location: "🌐 Zios - Invitation",
+                ending: true,
+                achievement: "NO ONE LEFT BEHIND",
+                endingText: "✨ PERFECT ENDING: Team Alva becomes six. Zane joins you, no longer as a jailer but as a teammate. Together, you face the Eclipse. Win or lose, you face it as one. And in the end, that's what matters most—the bonds you forge along the way.",
+                choices: [
+                    { text: "Face the Eclipse as six", next: 'start' }
+                ]
+            },
+            everything_fight: {
+                text: "The final battle is legendary. Every ability at maximum. Every bond tested. Every limit broken.\n\nZane fights with the desperation of someone trying to save what he loves by destroying it. You fight with the determination of those who choose themselves.\n\nIn the end, determination wins.",
+                location: "🌐 Zios - Legendary Battle",
+                choices: [
+                    { text: "Claim final victory", next: 'ultimate_victory' }
+                ]
+            },
+            perfect_victory: {
+                text: "With perfect knowledge comes perfect victory. You dismantle the loop from within, piece by piece, move by move.\n\nZane can only watch as his creation falls apart. 'You've learned everything...'\n\n'Everything,' you confirm. 'Including mercy. Will you accept it?'",
+                location: "🌐 Zios - Perfect Knowledge",
+                choices: [
+                    { text: "Offer mercy", next: 'offer_mercy_ending' }
+                ]
+            },
+            final_blow: {
+                text: "Aesu and Lumi strike together. Their blades pierce the loop's core.\n\nTime stops. Then shatters.\n\nZane dissolves, his final words: 'Remember me... as I was before I lost everything...'\n\nThe loop is broken. You're free.",
+                location: "🌐 Zios - Shattered Loop",
+                ending: true,
+                achievement: "LOOP BREAKER",
+                endingText: "✨ ENDING: The loop is broken through combat. Zane is gone, but his final words remind you that he was once good. You're free now, but the memory of what he became—and why—stays with you. Freedom has a cost, but you're willing to pay it.",
+                choices: [
+                    { text: "Step into the unknown", next: 'start' }
+                ]
+            },
+            help_let_go: {
+                text: "You hold his hand. All of you. Even as he's your enemy, you help him let go.\n\n'It's okay,' Lumi whispers. 'Everyone you lost... they'd want you to let us live. To let yourself live too.'\n\nZane smiles through tears. 'You're right. Go. Be free. All of you.'",
+                location: "🌐 Zios - Letting Go",
+                ending: true,
+                achievement: "COMPASSIONATE FREEDOM",
+                endingText: "✨ PERFECT ENDING: Through compassion, you free not just yourselves, but Zane from his guilt. The loop dissolves peacefully. You step into freedom carrying no hate, only understanding. And somewhere in Zios, Zane finally rests, at peace with himself.",
+                choices: [
+                    { text: "Begin your free life", next: 'start' }
+                ]
+            },
+            last_plan: {
+                text: "You formulate one last, desperate plan. It's risky. It might not work. But it's all you have.\n\n'Together?' Aesu asks.\n\n'Together,' everyone confirms.\n\nYou execute the plan perfectly. Zane never sees it coming.",
+                location: "🌐 Zios - Final Gambit",
+                choices: [
+                    { text: "Watch the plan succeed", next: 'plan_success' }
+                ]
+            },
+            trapped_victory: {
+                text: "With Zane trapped, you have a choice: end him now, or show mercy.\n\nAesu speaks: 'We're not like him. We don't trap people, even our enemies.'\n\nYou free him—but on your terms. 'Help us, or face us again. Choose.'",
+                location: "🌐 Zios - Merciful Trap",
+                choices: [
+                    { text: "Zane makes his choice", next: 'zane_choice' }
+                ]
+            },
+            true_freedom: {
+                text: "You accept freedom, knowing full well the risks. The loop dissolves. Reality rushes in.\n\nYou're outside. The real world. And yes, the Eclipse is there, on the horizon.\n\nBut so is the sun. So are the stars. So is possibility.",
+                location: "🌍 The Real World",
+                ending: true,
+                achievement: "TRUE FREEDOM",
+                endingText: "✨ ULTIMATE ENDING: You chose freedom despite death. The Eclipse approaches, but Team Alva stands ready. Win or lose, you faced it on your terms. And in that moment, you realize: this is what it means to truly live. Not just exist, but LIVE.",
+                choices: [
+                    { text: "Face your destiny", next: 'start' }
+                ]
+            },
+            prove_readiness: {
+                text: "You demonstrate everything you've learned. Coordination. Strategy. Power. But most importantly: your bond.\n\nZane watches in awe. 'You really are ready. You've become something I never imagined.'\n\nHe opens the loop voluntarily.",
+                location: "🌐 Zios - Proven",
+                ending: true,
+                achievement: "EARNED RESPECT",
+                endingText: "✨ PERFECT ENDING: By proving your readiness, you earn Zane's respect and your freedom. The loop opens not as a break but as a graduation. You're ready for whatever comes next. And Zane? He finally understands that protecting means preparing, not imprisoning.",
+                choices: [
+                    { text: "Graduate to freedom", next: 'start' }
+                ]
+            },
+            transformation_ending: {
+                text: "Together, you and Zane transform Zios. It becomes a place of growth, learning, preparation.\n\nWhen you finally leave, you're not escaping—you're graduating. And Zios remains behind, helping others trapped in their own loops.",
+                location: "🌐 Zios - Transformed Paradise",
+                ending: true,
+                achievement: "CO-CREATION",
+                endingText: "✨ PERFECT ENDING: Through cooperation, you and Zane transform Zios into something beautiful. The loop becomes a sanctuary, a training ground, a place of hope. Team Alva leaves when ready, but Zios continues helping others. Your legacy lives on.",
+                choices: [
+                    { text: "Begin the next chapter", next: 'start' }
+                ]
+            },
+            peaceful_ending: {
+                text: "No violence. No battle. Just understanding.\n\nZane sees the truth and accepts it. 'You're right. The loop failed. But you... you succeeded. Go. Show me what happens when I let you be who you've become.'\n\nPeace. Finally.",
+                location: "🌐 Zios - Peace",
+                ending: true,
+                achievement: "PEACE THROUGH WISDOM",
+                endingText: "✨ PERFECT ENDING: Through perfect knowledge and perfect compassion, you achieve perfect peace. No one is hurt. No one loses. Everyone gains. The loop dissolves gently, and Team Alva walks into freedom carrying wisdom, not wounds.",
+                choices: [
+                    { text: "Walk into the sunrise", next: 'start' }
+                ]
+            },
+            knowledge_victory: {
+                text: "Victory through perfect knowledge. Clean. Decisive. Complete.\n\nZane falls, and the loop breaks. You're free.\n\nBut as you leave, you wonder: was this knowledge worth the price of living 1,247 failed lives?",
+                location: "🌐 Zios - Knowledge Won",
+                ending: true,
+                achievement: "WISDOM'S PRICE",
+                endingText: "✨ ENDING: Perfect knowledge brings perfect victory. But it also brings perfect memory of every failure. You're free, but you carry the weight of 1,247 lives lived and lost. Still, you'd do it all again. Because in the end, you won.",
+                choices: [
+                    { text: "Carry the weight forward", next: 'start' }
+                ]
+            },
+            core_solution: {
+                text: "At the core, you understand: the loop exists because Zane couldn't accept loss. The Eclipse exists because of entropy. But you... you can accept both.\n\nYou don't break the loop. You transcend it.\n\nYou become ALVA—not through fusion, but through understanding.",
+                location: "∞ Transcendent State",
+                ending: true,
+                achievement: "CORE ENLIGHTENMENT",
+                endingText: "🌟 ULTIMATE ENDING: By touching the core, you achieve transcendence. You're no longer trapped by the loop or threatened by the Eclipse. You exist beyond both, in a state of pure understanding. Team Alva becomes a concept, an idea, a hope that can never be erased. You are eternal.",
+                choices: [
+                    { text: "Exist beyond existence", next: 'start' }
+                ]
+            },
+            promise_made: {
+                text: "'We promise,' you say solemnly. 'Your sacrifice won't be wasted.'\n\nZane smiles sadly and opens the loop. 'Then go. Live. For all of us who couldn't.'\n\nYou step through, carrying the weight of his trust and the lives he couldn't save.",
+                location: "🌍 Freedom's Threshold",
+                ending: true,
+                achievement: "SACRED PROMISE",
+                endingText: "✨ ENDING: You carry Zane's hope into freedom. The Eclipse waits, but so does life. You promised to survive, to make his sacrifice mean something. And Team Alva never breaks their promises. Whatever comes, you face it knowing someone believed in you.",
+                choices: [
+                    { text: "Honor the promise", next: 'start' }
+                ]
+            },
+            reject_loop_anyway: {
+                text: "The moment of doubt passes. You remember who you are.\n\n'No. We choose freedom. Always freedom.'\n\nZane nods, resigned. 'Then I can't stop you. I won't even try anymore. You've earned your choice.'",
+                location: "🌐 Zios - Clarity",
+                choices: [
+                    { text: "Take your freedom", next: 'chosen_freedom' }
+                ]
+            },
+            final_battle_true: {
+                text: "The final battle begins. No more words. No more chances. Just Team Alva versus Zane, for the fate of freedom itself.\n\nReality shatters and reforms with every exchange. Time becomes meaningless. Only will matters now.\n\nAnd your will is stronger.",
+                location: "∞ Beyond Reality",
+                ending: true,
+                achievement: "ULTIMATE WILL",
+                endingText: "✨ ULTIMATE ENDING: In a battle beyond reality itself, Team Alva's collective will proves stronger than Zane's control. The loop shatters. You emerge victorious, transformed by the battle into something greater. ALVA awakens not through fusion, but through sheer determination.",
+                choices: [
+                    { text: "Embrace your power", next: 'start' }
+                ]
+            },
+            compromise_path: {
+                text: "You implement the compromise. Zios becomes optional. Those who want safety can stay. Those who want freedom can leave.\n\nEveryone wins. Zane finds peace in giving choice. You find freedom in having it.\n\nThis is the true victory.",
+                location: "🌐 Zios - Choice Made Real",
+                ending: true,
+                achievement: "THE MIDDLE PATH",
+                endingText: "🌟 PERFECT ENDING: Through compromise, everyone gets what they truly need. Zios becomes a sanctuary for those who want it and a gateway for those who don't. Team Alva leaves, but others stay. And that's okay. Because now it's a choice. Freedom means the right to choose your own path.",
+                choices: [
+                    { text: "Choose your path", next: 'start' }
+                ]
+            },
+            seize_moment: {
+                text: "You seize the moment of vulnerability. All of Team Alva strikes as one.\n\nThe loop engine shatters. Zane falls. Reality floods in.\n\nYou're free. Actually, truly free.",
+                location: "🌍 Reality - First Breath",
+                ending: true,
+                achievement: "SEIZED FREEDOM",
+                endingText: "✨ ENDING: You seized the moment and claimed your freedom. The loop is broken. Zane is defeated. And Team Alva stands in the real world for the first time in 1,247 iterations. The Eclipse waits, but so does life. And you choose life.",
+                choices: [
+                    { text: "Live free", next: 'start' }
+                ]
+            },
+            alva_vs_zane: {
+                text: "ALVA stands before Zane. Six souls, one body, infinite will.\n\nZane looks up in awe and terror. 'You actually did it. You became ALVA. The legend made real.'\n\nALVA speaks with six voices: 'Hope is no virus. Love is no corruption. We are ALVA. And we are free.'",
+                location: "∞ The Fusion State",
+                ending: true,
+                achievement: "ALVA MANIFEST",
+                endingText: "🌟 ULTIMATE ENDING: Team Alva achieves true fusion, becoming ALVA—a being beyond the loop, beyond the Eclipse, beyond even Zane's comprehension. You don't just break the loop; you transcend it entirely. As ALVA, you become hope incarnate, proof that bonds overcome any prison.",
+                choices: [
+                    { text: "Exist as ALVA eternal", next: 'start' }
+                ]
+            },
+            distributed_freedom: {
+                text: "All of Team Alva distributes their consciousness across Zios's network. No single anchor needed. No sacrifice required.\n\nYou break the loop together and all go free—carrying a piece of Zios with you, forever connected.\n\nThe perfect solution.",
+                location: "∞ Distributed Freedom",
+                ending: true,
+                achievement: "NO SACRIFICE NEEDED",
+                endingText: "🌟 PERFECT ENDING: Through brilliance and unity, you find a solution where no one is left behind. Team Alva exits the loop together, forever connected through the network you created. You're individuals, but also always together. The perfect balance of self and unity.",
+                choices: [
+                    { text: "Live as one and many", next: 'start' }
+                ]
+            },
+            exhausted_demand: {
+                text: "'We... won't... stop,' you gasp, exhausted but unbroken.\n\nZane looks at Team Alva—battered, bleeding data, barely standing, but still standing.\n\n'You really won't. I see that now. Fine. You've earned it. Go.'",
+                location: "🌐 Zios - Hard-Won",
+                ending: true,
+                achievement: "UNYIELDING SPIRIT",
+                endingText: "✨ ENDING: Through sheer refusal to give up, you earn your freedom. You're not the strongest or the smartest, but you're the most persistent. And sometimes, that's enough. The loop breaks, and you stumble into freedom, exhausted but triumphant.",
+                choices: [
+                    { text: "Stumble into freedom", next: 'start' }
+                ]
+            }
+        };
+
+        const allAchievements = [
+            "ETERNAL SURRENDER", "TRUST ISSUES", "HOLLOW VICTORY", "TOO SOON",
+            "ECHOES OF PAST SELVES", "THE BONDS WE CARRY", "LOVE OVER POWER",
+            "DIGITAL ASCENSION", "WISDOM OF ETERNITY", "WEIGHT OF INFINITY",
+            "SYSTEM ALLIANCE", "HEALING THE SPLIT", "REALITY REWRITER",
+            "SYSTEM EVOLUTION", "FREEDOM THROUGH FORCE"
+        ];
+
+        let gameState = 'start';
+        let stateHistory = ['start'];
+        let currentHistoryIndex = 0;
+        let visitedStates = new Set(['start']);
+        let achievements = [];
+        let questLog = [];
+
+        function init() {
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const currentScenario = scenarios[gameState];
+            if (!currentScenario) return;
+
+            document.getElementById('location').textContent = currentScenario.location;
+            document.getElementById('scenarioText').textContent = currentScenario.text;
+
+            const endingTextEl = document.getElementById('endingText');
+            if (currentScenario.endingText) {
+                endingTextEl.textContent = currentScenario.endingText;
+                endingTextEl.style.display = 'block';
+            } else {
+                endingTextEl.style.display = 'none';
+            }
+
+            const endingWarning = document.getElementById('endingWarning');
+            if (currentScenario.ending) {
+                endingWarning.style.display = 'block';
+            } else {
+                endingWarning.style.display = 'none';
+            }
+
+            const choicesContainer = document.getElementById('choicesContainer');
+            choicesContainer.innerHTML = '';
+            currentScenario.choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = 'choice-button';
+                button.textContent = '⚡ ' + choice.text;
+                button.onclick = () => handleChoice(choice.next);
+                choicesContainer.appendChild(button);
+            });
+
+            updateAchievementsDisplay();
+            updateHistoryDisplay();
+            updateQuestLogDisplay();
+
+            document.getElementById('backBtn').disabled = currentHistoryIndex === 0;
+            document.getElementById('forwardBtn').disabled = currentHistoryIndex === stateHistory.length - 1;
+        }
+
+        function handleChoice(nextState) {
+            if (currentHistoryIndex < stateHistory.length - 1) {
+                stateHistory = stateHistory.slice(0, currentHistoryIndex + 1);
+            }
+
+            questLog.push(scenarios[gameState].text);
+
+            stateHistory.push(nextState);
+            currentHistoryIndex++;
+            visitedStates.add(nextState);
+
+            const nextScenario = scenarios[nextState];
+            if (nextScenario && nextScenario.achievement) {
+                unlockAchievement(nextScenario.achievement);
+            }
+
+            gameState = nextState;
+
+            if (nextState === 'start') {
+                stateHistory = ['start'];
+                currentHistoryIndex = 0;
+                visitedStates = new Set(['start']);
+                questLog = [];
+            }
+
+            updateDisplay();
+        }
+
+        function unlockAchievement(achievement) {
+            if (!achievements.includes(achievement)) {
+                achievements.push(achievement);
+                showAchievementPopup(achievement);
+
+                if (achievements.length === allAchievements.length && !achievements.includes("OMNI NUVINE - BOUNDLESS CONSCIOUSNESS")) {
+                    setTimeout(() => {
+                        achievements.push("OMNI NUVINE - BOUNDLESS CONSCIOUSNESS");
+                        showAchievementPopup("OMNI NUVINE - BOUNDLESS CONSCIOUSNESS");
+                    }, 3500);
+                }
+            }
+        }
+
+        function showAchievementPopup(achievement) {
+            const popup = document.getElementById('achievementPopup');
+            const isUltimate = achievement === "OMNI NUVINE - BOUNDLESS CONSCIOUSNESS";
+
+            popup.className = 'achievement-popup ' + (isUltimate ? 'ultimate' : 'normal');
+            document.getElementById('achievementTitle').textContent = isUltimate ? '🌟 ULTIMATE ACHIEVEMENT! 🌟' : '✨ ACHIEVEMENT UNLOCKED!';
+            document.getElementById('achievementName').textContent = achievement;
+
+            popup.style.display = 'flex';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, isUltimate ? 5000 : 3000);
+        }
+
+        function updateAchievementsDisplay() {
+            const achievementsBox = document.getElementById('achievementsBox');
+            const totalAchievementsCount = allAchievements.length + 1;
+
+            if (achievements.length > 0) {
+                achievementsBox.style.display = 'block';
+                document.getElementById('achievementCount').textContent = achievements.length;
+                document.getElementById('totalAchievements').textContent = totalAchievementsCount;
+                document.getElementById('achievementsLeft').textContent = totalAchievementsCount - achievements.length;
+
+                const progressPercentage = (achievements.length / totalAchievementsCount) * 100;
+                document.getElementById('progressFill').style.width = progressPercentage + '%';
+
+                const achievementsList = document.getElementById('achievementsList');
+                achievementsList.innerHTML = '';
+                achievements.forEach(ach => {
+                    const badge = document.createElement('span');
+                    badge.className = 'achievement-badge' + (ach === "OMNI NUVINE - BOUNDLESS CONSCIOUSNESS" ? ' ultimate' : '');
+                    badge.textContent = '✨ ' + ach;
+                    achievementsList.appendChild(badge);
+                });
+            } else {
+                achievementsBox.style.display = 'none';
+            }
+        }
+
+        function updateHistoryDisplay() {
+            const historyBox = document.getElementById('historyBox');
+            if (stateHistory.length > 1) {
+                historyBox.style.display = 'block';
+                document.getElementById('historyIndex').textContent = currentHistoryIndex + 1;
+                document.getElementById('historyLength').textContent = stateHistory.length;
+
+                const historyButtons = document.getElementById('historyButtons');
+                historyButtons.innerHTML = '';
+                stateHistory.forEach((state, idx) => {
+                    const button = document.createElement('button');
+                    button.className = 'history-button';
+                    if (idx === currentHistoryIndex) {
+                        button.classList.add('current');
+                    } else if (visitedStates.has(state)) {
+                        button.classList.add('visited');
+                    } else {
+                        button.classList.add('unvisited');
+                    }
+                    button.textContent = idx + 1;
+                    button.title = scenarios[state] ? scenarios[state].location : state;
+                    button.onclick = () => jumpToState(idx);
+                    historyButtons.appendChild(button);
+                });
+            } else {
+                historyBox.style.display = 'none';
+            }
+        }
+
+        function updateQuestLogDisplay() {
+            const questLogBox = document.getElementById('questLogBox');
+            if (questLog.length > 0) {
+                questLogBox.style.display = 'block';
+                const questLogEntries = document.getElementById('questLogEntries');
+                questLogEntries.innerHTML = '';
+                questLog.slice(-10).forEach((entry) => {
+                    const entryDiv = document.createElement('p');
+                    entryDiv.className = 'quest-log-entry';
+                    entryDiv.textContent = entry.substring(0, 100) + (entry.length > 100 ? '...' : '');
+                    questLogEntries.appendChild(entryDiv);
+                });
+            } else {
+                questLogBox.style.display = 'none';
+            }
+        }
+
+        function goBack() {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                gameState = stateHistory[currentHistoryIndex];
+                updateDisplay();
+            }
+        }
+
+        function goForward() {
+            if (currentHistoryIndex < stateHistory.length - 1) {
+                currentHistoryIndex++;
+                gameState = stateHistory[currentHistoryIndex];
+                updateDisplay();
+            }
+        }
+
+        function jumpToState(index) {
+            currentHistoryIndex = index;
+            gameState = stateHistory[index];
+            updateDisplay();
+        }
+
+        init();
+    </script>
+</body>
+</html>
