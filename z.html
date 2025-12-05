@@ -1,0 +1,703 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML - Sistema de Gestão Clínica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .container {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 35px;
+            min-width: 1600px;
+            margin: 0 auto;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 
+                        0 0 100px rgba(139, 92, 246, 0.1);
+            position: relative;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-size: 2em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .info-panel {
+            padding: 18px 24px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(192, 132, 252, 0.15) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            display: none;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .info-panel.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-title {
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .info-content {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .info-content strong {
+            color: #e0e7ff;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .legend-line {
+            width: 40px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-dashed {
+            background: repeating-linear-gradient(
+                to right,
+                #34d399 0px,
+                #34d399 8px,
+                transparent 8px,
+                transparent 12px
+            );
+        }
+
+        .legend-dotted {
+            background: repeating-linear-gradient(
+                to right,
+                #f87171 0px,
+                #f87171 5px,
+                transparent 5px,
+                transparent 10px
+            );
+        }
+
+        .legend-solid {
+            background: linear-gradient(90deg, #a78bfa 0%, #c084fc 100%);
+        }
+
+        .diagram-wrapper {
+            position: relative;
+            width: 100%;
+            height: 900px;
+            margin-top: 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .section-bg {
+            position: absolute;
+            width: 100%;
+            height: 140px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-auth { 
+            top: 90px; 
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.2), rgba(192, 132, 252, 0.2)); 
+        }
+        .bg-admin { 
+            top: 210px; 
+            background: linear-gradient(90deg, rgba(52, 211, 153, 0.2), rgba(16, 185, 129, 0.2)); 
+        }
+        .bg-session { 
+            top: 390px; 
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2)); 
+        }
+        .bg-errors { 
+            top: 590px; 
+            background: linear-gradient(90deg, rgba(248, 113, 113, 0.2), rgba(239, 68, 68, 0.2)); 
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .actor {
+            position: absolute;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            min-width: 140px;
+            font-size: 0.9em;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .actor-professor {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        }
+
+        .actor-administrador {
+            background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+        }
+
+        .actor-aluno {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        }
+
+        .actor-paciente {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+        }
+
+        .actor:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5),
+                        0 0 60px currentColor;
+        }
+
+        .use-case {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 3px solid #8b5cf6;
+            border-radius: 50px;
+            padding: 14px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(139, 92, 246, 0.2) inset;
+            z-index: 10;
+            min-width: 180px;
+        }
+
+        .use-case:hover {
+            background: rgba(49, 46, 129, 0.95);
+            transform: translateY(-3px) scale(1.08);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4),
+                        0 0 80px rgba(139, 92, 246, 0.3);
+            z-index: 100;
+        }
+
+        .use-case-id {
+            font-weight: 800;
+            color: #a78bfa;
+            font-size: 0.75em;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .use-case-name {
+            margin-top: 5px;
+            color: #e2e8f0;
+            font-size: 0.85em;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+
+        .error-case {
+            border-color: #f87171;
+            background: rgba(69, 10, 10, 0.95);
+        }
+
+        .error-case:hover {
+            background: rgba(127, 29, 29, 0.95);
+            box-shadow: 0 12px 40px rgba(248, 113, 113, 0.4),
+                        0 0 80px rgba(248, 113, 113, 0.3);
+        }
+
+        .error-case .use-case-id {
+            color: #fca5a5;
+        }
+
+        .validation-case {
+            border-color: #34d399;
+            background: rgba(6, 78, 59, 0.95);
+        }
+
+        .validation-case:hover {
+            background: rgba(6, 95, 70, 0.95);
+            box-shadow: 0 12px 40px rgba(52, 211, 153, 0.4),
+                        0 0 80px rgba(52, 211, 153, 0.3);
+        }
+
+        .validation-case .use-case-id {
+            color: #6ee7b7;
+        }
+
+        .session-case {
+            border-color: #fbbf24;
+            background: rgba(78, 70, 0, 0.95);
+        }
+
+        .session-case:hover {
+            background: rgba(113, 63, 18, 0.95);
+            box-shadow: 0 12px 40px rgba(251, 191, 36, 0.4),
+                        0 0 80px rgba(251, 191, 36, 0.3);
+        }
+
+        .session-case .use-case-id {
+            color: #fde68a;
+        }
+
+        /* Actor positions */
+        .actor-professor { top: 30px; left: 30px; }
+        .actor-administrador { top: 30px; left: 210px; }
+        .actor-aluno { top: 30px; right: 210px; }
+        .actor-paciente { top: 30px; right: 30px; }
+
+        /* Use case positions */
+        .uc-UC04 { top: 120px; left: 50%; transform: translateX(-50%); }
+        
+        .uc-UC03 { top: 240px; left: 100px; }
+        .uc-UC02 { top: 240px; left: 340px; }
+        .uc-UC07 { top: 240px; left: 580px; }
+        .uc-UC08 { top: 240px; left: 820px; }
+        .uc-UC10 { top: 240px; left: 1060px; }
+        .uc-VALIDACAO { top: 240px; left: 1340px; }
+        
+        .uc-UC05 { top: 420px; left: 150px; }
+        .uc-UC01 { top: 420px; left: 430px; }
+        .uc-UC09 { top: 420px; left: 710px; }
+        .uc-UC06 { top: 420px; left: 990px; }
+        .uc-SESSION_ID { top: 420px; left: 1300px; }
+        
+        .uc-ERROR_SESSION { top: 620px; left: 300px; }
+        .uc-ERROR_ADMIN { top: 620px; left: 650px; }
+        .uc-ERROR_CLIENT { top: 620px; left: 1000px; }
+
+        .section-label {
+            position: absolute;
+            font-size: 0.7em;
+            font-weight: 800;
+            letter-spacing: 2px;
+            z-index: 5;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid;
+        }
+
+        .label-auth { 
+            top: 95px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            color: #a78bfa;
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+        
+        .label-admin { 
+            top: 215px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+        
+        .label-session { 
+            top: 395px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+        
+        .label-errors { 
+            top: 595px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            color: #f87171;
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Sistema de Gestão Clínica</h1>
+
+        <div class="info-panel" id="infoPanel">
+            <div class="info-title" id="infoTitle">💡 Clique em qualquer elemento para ver detalhes</div>
+            <div class="info-content" id="infoContent">Selecione um ator ou caso de uso para visualizar suas conexões e relacionamentos detalhados.</div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-line" style="background: linear-gradient(90deg, #a78bfa 0%, #a78bfa 100%);"></div>
+                <span>Professor</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: linear-gradient(90deg, #f472b6 0%, #f472b6 100%);"></div>
+                <span>Administrador</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: linear-gradient(90deg, #60a5fa 0%, #60a5fa 100%);"></div>
+                <span>Aluno</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: linear-gradient(90deg, #fb923c 0%, #fb923c 100%);"></div>
+                <span>Paciente</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line legend-dashed"></div>
+                <span>«include»</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line legend-dotted"></div>
+                <span>«extend»</span>
+            </div>
+        </div>
+
+        <div class="diagram-wrapper">
+            <!-- Section backgrounds -->
+            <div class="section-bg bg-auth"></div>
+            <div class="section-bg bg-admin"></div>
+            <div class="section-bg bg-session"></div>
+            <div class="section-bg bg-errors"></div>
+
+            <svg id="connections"></svg>
+
+            <!-- Section Labels -->
+            <div class="section-label label-auth">🔐 Autenticação</div>
+            <div class="section-label label-admin">⚙️ Operações Administrativas</div>
+            <div class="section-label label-session">📋 Gerenciamento de Sessões</div>
+            <div class="section-label label-errors">⚠️ Tratamento de Erros</div>
+
+            <!-- Actors -->
+            <div class="actor actor-professor" id="actor-professor">👨‍🏫 Professor</div>
+            <div class="actor actor-administrador" id="actor-administrador">👔 Admin</div>
+            <div class="actor actor-aluno" id="actor-aluno">👨‍🎓 Aluno</div>
+            <div class="actor actor-paciente" id="actor-paciente">🧑‍⚕️ Paciente</div>
+
+            <!-- Authentication -->
+            <div class="use-case uc-UC04" id="uc-UC04">
+                <div class="use-case-id">UC04</div>
+                <div class="use-case-name">Autenticar-se</div>
+            </div>
+
+            <!-- Administrative operations -->
+            <div class="use-case uc-UC03" id="uc-UC03">
+                <div class="use-case-id">UC03</div>
+                <div class="use-case-name">Gerir Usuários</div>
+            </div>
+
+            <div class="use-case uc-UC02" id="uc-UC02">
+                <div class="use-case-id">UC02</div>
+                <div class="use-case-name">Atualizar/<br>Excluir Paciente</div>
+            </div>
+
+            <div class="use-case uc-UC07" id="uc-UC07">
+                <div class="use-case-id">UC07</div>
+                <div class="use-case-name">Emitir<br>Relatórios</div>
+            </div>
+
+            <div class="use-case uc-UC08" id="uc-UC08">
+                <div class="use-case-id">UC08</div>
+                <div class="use-case-name">Gerir Termos/<br>Consentimentos</div>
+            </div>
+
+            <div class="use-case uc-UC10" id="uc-UC10">
+                <div class="use-case-id">UC10</div>
+                <div class="use-case-name">Auditoria/<br>Logs</div>
+            </div>
+
+            <div class="use-case validation-case uc-VALIDACAO" id="uc-VALIDACAO">
+                <div class="use-case-id">✓ Validação</div>
+                <div class="use-case-name">Professor</div>
+            </div>
+
+            <!-- Session management -->
+            <div class="use-case uc-UC05" id="uc-UC05">
+                <div class="use-case-id">UC05</div>
+                <div class="use-case-name">Agendar/<br>Remarcar/<br>Cancelar</div>
+            </div>
+
+            <div class="use-case uc-UC01" id="uc-UC01">
+                <div class="use-case-id">UC01</div>
+                <div class="use-case-name">Cadastrar<br>Paciente</div>
+            </div>
+
+            <div class="use-case uc-UC09" id="uc-UC09">
+                <div class="use-case-id">UC09</div>
+                <div class="use-case-name">Consultar<br>Histórico</div>
+            </div>
+
+            <div class="use-case uc-UC06" id="uc-UC06">
+                <div class="use-case-id">UC06</div>
+                <div class="use-case-name">Registrar<br>Sessão</div>
+            </div>
+
+            <div class="use-case session-case uc-SESSION_ID" id="uc-SESSION_ID">
+                <div class="use-case-id">🔑 Sessão</div>
+                <div class="use-case-name">ID Criada</div>
+            </div>
+
+            <!-- Error cases -->
+            <div class="use-case error-case uc-ERROR_SESSION" id="uc-ERROR_SESSION">
+                <div class="use-case-id">❌ Erro</div>
+                <div class="use-case-name">Crie sessão<br>primeiro</div>
+            </div>
+
+            <div class="use-case error-case uc-ERROR_ADMIN" id="uc-ERROR_ADMIN">
+                <div class="use-case-id">❌ Erro</div>
+                <div class="use-case-name">Login Admin<br>necessário</div>
+            </div>
+
+            <div class="use-case error-case uc-ERROR_CLIENT" id="uc-ERROR_CLIENT">
+                <div class="use-case-id">❌ Erro</div>
+                <div class="use-case-name">Login Cliente<br>necessário</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const svg = document.getElementById('connections');
+
+        function getCenter(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return { x: 0, y: 0 };
+            const rect = el.getBoundingClientRect();
+            const container = document.querySelector('.diagram-wrapper').getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2 - container.left,
+                y: rect.top + rect.height / 2 - container.top
+            };
+        }
+
+        function drawLine(from, to, style = 'solid', color = '#a78bfa', opacity = 0.5) {
+            const start = getCenter(from);
+            const end = getCenter(to);
+            
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', start.x);
+            line.setAttribute('y1', start.y);
+            line.setAttribute('x2', end.x);
+            line.setAttribute('y2', end.y);
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', '2.5');
+            
+            if (style === 'dashed') {
+                line.setAttribute('stroke-dasharray', '10,5');
+            } else if (style === 'dotted') {
+                line.setAttribute('stroke-dasharray', '4,6');
+            }
+            
+            line.setAttribute('opacity', opacity);
+            line.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(line);
+
+            if (style !== 'solid') {
+                const angle = Math.atan2(end.y - start.y, end.x - start.x);
+                const arrowSize = 9;
+                const arrowX = end.x - Math.cos(angle) * 12;
+                const arrowY = end.y - Math.sin(angle) * 12;
+                
+                const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                const points = [
+                    [arrowX, arrowY],
+                    [arrowX - arrowSize * Math.cos(angle - Math.PI / 6), arrowY - arrowSize * Math.sin(angle - Math.PI / 6)],
+                    [arrowX - arrowSize * Math.cos(angle + Math.PI / 6), arrowY - arrowSize * Math.sin(angle + Math.PI / 6)]
+                ];
+                arrow.setAttribute('points', points.map(p => p.join(',')).join(' '));
+                arrow.setAttribute('fill', color);
+                arrow.setAttribute('opacity', opacity);
+                svg.appendChild(arrow);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                // Actor associations with distinct colors for each actor
+                const actorConnections = {
+                    'actor-professor': {
+                        useCases: ['uc-UC03', 'uc-UC02', 'uc-UC07', 'uc-UC08', 'uc-UC10', 'uc-UC04', 'uc-UC05', 'uc-UC01', 'uc-UC09', 'uc-UC06'],
+                        color: '#a78bfa' // Purple
+                    },
+                    'actor-administrador': {
+                        useCases: ['uc-UC03', 'uc-UC02', 'uc-UC07', 'uc-UC08', 'uc-UC10', 'uc-UC04', 'uc-UC05', 'uc-UC01', 'uc-UC09', 'uc-UC06'],
+                        color: '#f472b6' // Pink
+                    },
+                    'actor-aluno': {
+                        useCases: ['uc-UC04', 'uc-UC05', 'uc-UC01', 'uc-UC09', 'uc-UC06'],
+                        color: '#60a5fa' // Blue
+                    },
+                    'actor-paciente': {
+                        useCases: ['uc-UC05', 'uc-UC09'],
+                        color: '#fb923c' // Orange
+                    }
+                };
+
+                // Draw actor connections with their specific colors
+                for (const [actor, data] of Object.entries(actorConnections)) {
+                    data.useCases.forEach(uc => drawLine(actor, uc, 'solid', data.color, 0.4));
+                }
+
+                const includes = [
+                    ['uc-UC03', 'uc-VALIDACAO'],
+                    ['uc-UC02', 'uc-VALIDACAO'],
+                    ['uc-UC07', 'uc-VALIDACAO'],
+                    ['uc-UC08', 'uc-VALIDACAO'],
+                    ['uc-UC10', 'uc-VALIDACAO'],
+                    ['uc-UC05', 'uc-SESSION_ID'],
+                    ['uc-UC01', 'uc-SESSION_ID'],
+                    ['uc-UC09', 'uc-SESSION_ID'],
+                    ['uc-UC06', 'uc-SESSION_ID'],
+                    ['uc-UC05', 'uc-ERROR_ADMIN'],
+                    ['uc-UC01', 'uc-ERROR_ADMIN'],
+                    ['uc-UC09', 'uc-ERROR_ADMIN'],
+                    ['uc-UC06', 'uc-ERROR_ADMIN']
+                ];
+                includes.forEach(([from, to]) => drawLine(from, to, 'dashed', '#34d399', 0.6));
+
+                const extendRelations = [
+                    ['uc-UC03', 'uc-ERROR_SESSION'],
+                    ['uc-UC02', 'uc-ERROR_SESSION'],
+                    ['uc-UC07', 'uc-ERROR_SESSION'],
+                    ['uc-UC08', 'uc-ERROR_SESSION'],
+                    ['uc-UC10', 'uc-ERROR_SESSION'],
+                    ['uc-UC05', 'uc-ERROR_SESSION'],
+                    ['uc-UC01', 'uc-ERROR_SESSION'],
+                    ['uc-UC09', 'uc-ERROR_SESSION'],
+                    ['uc-UC06', 'uc-ERROR_SESSION'],
+                    ['uc-UC06', 'uc-ERROR_CLIENT']
+                ];
+                extendRelations.forEach(([from, to]) => drawLine(from, to, 'dotted', '#f87171', 0.6));
+
+            }, 100);
+        });
+
+        const ucData = {
+            'actor-professor': {
+                title: "👨‍🏫 Professor",
+                content: "Permissões completas. Acessa TODOS os casos de uso incluindo validações exclusivas."
+            },
+            'actor-administrador': {
+                title: "👔 Administrador",
+                content: "Permissões administrativas. Acessa todos exceto validação exclusiva do professor."
+            },
+            'actor-aluno': {
+                title: "👨‍🎓 Aluno",
+                content: "Permissões estudantis. Pode autenticar, agendar, cadastrar, consultar e registrar sessões."
+            },
+            'actor-paciente': {
+                title: "🧑‍⚕️ Paciente",
+                content: "Permissões limitadas. Apenas agendamento e consulta do próprio histórico."
+            },
+            'uc-UC04': { title: "🔐 UC04 - Autenticar", content: "Ponto de entrada principal. Todos os atores fazem login através deste caso de uso." },
+            'uc-UC03': { title: "⚙️ UC03 - Gerir Usuários", content: "<strong>«include»</strong> VALIDAÇÃO_PROFESSOR • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC02': { title: "⚙️ UC02 - Atualizar/Excluir", content: "<strong>«include»</strong> VALIDAÇÃO_PROFESSOR • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC07': { title: "⚙️ UC07 - Relatórios", content: "<strong>«include»</strong> VALIDAÇÃO_PROFESSOR • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC08': { title: "⚙️ UC08 - Termos", content: "<strong>«include»</strong> VALIDAÇÃO_PROFESSOR • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC10': { title: "⚙️ UC10 - Auditoria", content: "<strong>«include»</strong> VALIDAÇÃO_PROFESSOR • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-VALIDACAO': { title: "✅ VALIDAÇÃO Professor", content: "Incluída obrigatoriamente em 5 operações administrativas críticas (UC03, UC02, UC07, UC08, UC10)" },
+            'uc-UC05': { title: "📋 UC05 - Agendar/Remarcar", content: "<strong>«include»</strong> SESSION_ID + ERRO_ADMIN • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC01': { title: "📋 UC01 - Cadastrar", content: "<strong>«include»</strong> SESSION_ID + ERRO_ADMIN • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC09': { title: "📋 UC09 - Histórico", content: "<strong>«include»</strong> SESSION_ID + ERRO_ADMIN • <strong>«extend»</strong> ERRO_SESSION" },
+            'uc-UC06': { title: "📋 UC06 - Registrar Sessão", content: "<strong>«include»</strong> SESSION_ID + ERRO_ADMIN • <strong>«extend»</strong> ERRO_SESSION + ERRO_CLIENT" },
+            'uc-SESSION_ID': { title: "🔑 Sessão ID", content: "Criação obrigatória de ID único para rastreamento. Incluída em 4 operações de sessão (UC05, UC01, UC09, UC06)." },
+            'uc-ERROR_SESSION': { title: "❌ Erro Sessão", content: "Estende 9 casos de uso. Aparece quando uma operação é tentada sem sessão ativa no sistema." },
+            'uc-ERROR_ADMIN': { title: "❌ Erro Admin", content: "Incluído obrigatoriamente em 4 operações. Valida se o usuário possui permissões administrativas." },
+            'uc-ERROR_CLIENT': { title: "❌ Erro Cliente", content: "Estende apenas UC06. Valida se o usuário está autenticado como cliente antes de registrar sessão." }
+        };
+
+        document.querySelectorAll('.actor, .use-case').forEach(element => {
+            element.addEventListener('click', function() {
+                const data = ucData[this.id];
+                if (data) {
+                    document.getElementById('infoTitle').textContent = data.title;
+                    document.getElementById('infoContent').innerHTML = data.content;
+                    document.getElementById('infoPanel').classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
